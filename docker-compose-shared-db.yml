@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      RDS_DATABASE_URI: postgresql+psycopg2://rdschannel:rdschannel@host.docker.internal/rdschannel
+    ports: ['5000:5000']
+    command: bash -c "cd /src && python manage.py runserver -h 0.0.0.0"
+
