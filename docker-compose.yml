@@ -8,7 +8,7 @@ services:
     depends_on:
       - postgres
     environment:
-      RDS_DATABASE_URI: postgresql+psycopg2://rdschannel:rdschannel@db/rdschannel
+      RDS_DATABASE_URI: postgresql+psycopg2://rdschannel:rdschannel@postgres/rdschannel
     ports: ['5000:5000']
     command: bash -c "cd /src && python manage.py runserver -h 0.0.0.0"
 
