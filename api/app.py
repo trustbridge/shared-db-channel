@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from api import loggers
 from api.conf import BaseConfig
+from api.docs import spec
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -30,4 +31,5 @@ def create_app(config_object=None):
         ma.init_app(app)
         migrate.init_app(app, db)
 
+        spec.path(view=views.post_message, app=app)
     return app
