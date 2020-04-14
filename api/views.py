@@ -30,6 +30,20 @@ def index():
 
 @blueprint.route('/messages', methods=['POST'])
 def post_message():
+    """
+    Post a new message endpoint
+    ---
+    post:
+        requestBody:
+            content:
+                application/json:
+                    schema: MessageSchema
+        responses:
+            201:
+                content:
+                    application/json:
+                        schema: MessageSchema
+    """
     schema = MessageSchema()
     try:
         message_dict = schema.load(request.json)
