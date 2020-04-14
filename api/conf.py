@@ -19,6 +19,8 @@ class ProductionConfig(BaseConfig):
 class DevelopmentConfig(BaseConfig):
     ENV = 'development'
     DEBUG = True
+    LOCAL_DB = 'postgresql+psycopg2://rdschannel:rdschannel@127.0.0.1/rdschannel'
+    SQLALCHEMY_DATABASE_URI = environ.get('RDS_DATABASE_URI', LOCAL_DB)
 
 
 class TestingConfig(BaseConfig):
