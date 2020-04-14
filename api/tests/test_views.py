@@ -9,7 +9,7 @@ from api.models import Message
 def test_index_view(client):
     response = client.get(url_for('views.index'))
     assert response.status_code == 200
-    assert response.json == {'service': 'shared-rds-channel'}
+    assert response.json == {'service': 'shared-db-channel'}
 
 
 @freeze_time('2020-04-07 14:21:22.123456')

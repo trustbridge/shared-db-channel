@@ -8,15 +8,15 @@ services:
     depends_on:
       - postgres
     environment:
-      RDS_DATABASE_URI: postgresql+psycopg2://rdschannel:rdschannel@db/rdschannel
+      DATABASE_URI: postgresql+psycopg2://dbchannel:dbchannel@postgres/dbchannel
     ports: ['5000:5000']
     command: bash -c "cd /src && python manage.py runserver -h 0.0.0.0"
 
   postgres:
     image: postgres:10.5
     environment:
-      - POSTGRES_USER=rdschannel
-      - POSTGRES_PASSWORD=rdschannel
-      - POSTGRES_DB=rdschannel
+      - POSTGRES_USER=dbchannel
+      - POSTGRES_PASSWORD=dbchannel
+      - POSTGRES_DB=dbchannel
     ports: ['5432:5432']
     restart: on-failure

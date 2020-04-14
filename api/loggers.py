@@ -52,4 +52,4 @@ def create_logger(config):
         LOGGING['handlers']['console']['formatter'] = 'json'
 
     dictConfig(LOGGING)
-    return logging.getLogger('shared-rds-channel')
+    return logging.getLogger('shared-db-channel')
