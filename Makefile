@@ -1,3 +1,6 @@
+build:
+	docker-compose build api
+
 run:
 	docker-compose up
 
@@ -7,3 +10,5 @@ run-shared-db:
 test:
 	docker-compose run api pytest
 
+docs:
+	docker-compose run api python ./manage.py generate_swagger

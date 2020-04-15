@@ -40,6 +40,7 @@ def post_message():
                     schema: MessageSchema
         responses:
             201:
+                description: Returns created message object
                 content:
                     application/json:
                         schema: MessageSchema
