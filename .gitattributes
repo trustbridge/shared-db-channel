@@ -1,0 +1,2 @@
+# shell files must have lf eol, even on Windows
+*.sh eol=lf
