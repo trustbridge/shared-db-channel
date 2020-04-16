@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import url_for
 from freezegun import freeze_time
 
-from api.models import Message
+from api.models import Message, MessageStatus
 
 
 def test_index_view(client):
@@ -26,11 +26,8 @@ def test_post_message__when_posted__should_create_message_in_db(client, db_sessi
     assert response.json == {'id': 1}
 
     message = Message.query.order_by(Message.id.desc()).first()
-    assert message.sender == 'AU'
-    assert message.receiver == 'CN'
-    assert message.subject == 'AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX'
-    assert message.obj == 'QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n'
-    assert message.predicate == 'UN.CEFACT.Trade.CertificateOfOrigin.created'
+    assert message.status == MessageStatus.CONFIRMED
+    assert message.payload == message_data
     assert message.created_at == datetime(2020, 4, 7, 14, 21, 22, 123456)
 
 

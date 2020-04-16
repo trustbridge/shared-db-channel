@@ -1,11 +1,7 @@
 components:
   schemas:
-    Message:
+    MessagePayload:
       properties:
-        id:
-          format: int32
-          readOnly: true
-          type: integer
         obj:
           type: string
         predicate:
@@ -41,7 +37,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'
+              $ref: '#/components/schemas/MessagePayload'
       responses:
         '201':
           content:
