@@ -9,8 +9,10 @@ services:
       - postgres
     environment:
       DATABASE_URI: postgresql+psycopg2://dbchannel:dbchannel@postgres/dbchannel
+    volumes:
+      - .:/src
     ports: ['5000:5000']
-    command: bash -c "cd /src && python manage.py runserver -h 0.0.0.0"
+    command: bash -c "cd /src && ./scripts/wait-for-it.sh postgres:5432 && ./scripts/runserver.sh"
 
   postgres:
     image: postgres:10.5

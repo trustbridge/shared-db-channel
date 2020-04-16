@@ -5,8 +5,10 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    volumes:
+      - .:/src
     environment:
       DATABASE_URI: postgresql+psycopg2://dbchannel:dbchannel@host.docker.internal/dbchannel
     ports: ['5000:5000']
-    command: bash -c "cd /src && python manage.py runserver -h 0.0.0.0"
+    command: bash -c "cd /src && ./scripts/runserver.sh"
 

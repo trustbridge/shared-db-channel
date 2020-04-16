@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+from apispec.utils import validate_spec
+
 from api.docs import spec
 
 
@@ -46,6 +48,7 @@ def test_post_message__should_be_registered_in_docs(app):
                         },
                         'responses': OrderedDict([
                             ('201', {
+                                'description': 'Returns created message object',
                                 'content': {
                                     'application/json': {
                                         'schema': {'$ref': '#/components/schemas/Message'}
@@ -57,3 +60,7 @@ def test_post_message__should_be_registered_in_docs(app):
                 ]))
             ])
         }
+
+
+def test_spec__should_be_valid():
+    assert validate_spec(spec)
