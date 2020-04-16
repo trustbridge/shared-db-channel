@@ -5,7 +5,7 @@ from flask import current_app
 from marshmallow import ValidationError
 
 from api.models import Message, db
-from api.schemas import MessageSchema
+from api.schemas import MessageSchema, PostedMessageSchema
 
 blueprint = Blueprint('views', __name__)
 
@@ -43,14 +43,15 @@ def post_message():
                 description: Returns created message object
                 content:
                     application/json:
-                        schema: MessageSchema
+                        schema: PostedMessageSchema
     """
     schema = MessageSchema()
     try:
         message_dict = schema.load(request.json)
     except ValidationError as e:
         return JsonResponse(e.messages, status=400)
-    db.session.add(Message(**message_dict))
+    message = Message(**message_dict)
+    db.session.add(message)
     db.session.commit()
-
-    return JsonResponse(message_dict, status=201)
+    return_schema = PostedMessageSchema()
+    return JsonResponse(return_schema.dump(message), status=201)
