@@ -1,5 +1,15 @@
 components:
   schemas:
+    Message:
+      properties:
+        id:
+          format: int32
+          type: integer
+        message:
+          type: object
+        status:
+          type: string
+      type: object
     MessagePayload:
       properties:
         obj:
@@ -44,4 +54,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PostedMessage'
-          description: Returns created message object
+          description: Returns message id
+  /messages/{id}:
+    get:
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: Returns message object

@@ -41,3 +41,29 @@ def test_post_message__when_missing_field__should_return_400(client):
         'sender': ['Missing data for required field.'],
         'subject': ['Missing data for required field.']
     }
+
+
+def test_get_message__when_not_exist__should_return_404(client, db_session):
+    response = client.get(url_for('views.get_message', id=123))
+    assert response.status_code == 404
+
+
+def test_get_message__when_missing_id__should_return_404(client, db_session):
+    response = client.get('/messages/')
+    assert response.status_code == 404
+
+
+def test_get_message__when_exist__should_return_it(client, db_session):
+    message = Message(id=42, payload={"sender": "AU"})
+    db_session.add(message)
+    db_session.commit()
+
+    response = client.get(url_for('views.get_message', id=42))
+    assert response.status_code == 200
+    assert response.json == {
+        'id': 42,
+        'status': 'confirmed',
+        'message': {
+            'sender': 'AU'
+        }
+    }
