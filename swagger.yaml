@@ -23,6 +23,13 @@ components:
       - sender
       - subject
       type: object
+    PostedMessage:
+      properties:
+        id:
+          format: int32
+          readOnly: true
+          type: integer
+      type: object
 info:
   title: Shared DB Channel API
   version: 1.0.0
@@ -40,5 +47,5 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
+                $ref: '#/components/schemas/PostedMessage'
           description: Returns created message object

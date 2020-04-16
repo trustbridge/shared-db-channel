@@ -23,7 +23,7 @@ def test_post_message__when_posted__should_create_message_in_db(client, db_sessi
     }
     response = client.post(url_for('views.post_message'), json=message_data)
     assert response.status_code == 201
-    assert response.json == message_data
+    assert response.json == {'id': 1}
 
     message = Message.query.order_by(Message.id.desc()).first()
     assert message.sender == 'AU'
