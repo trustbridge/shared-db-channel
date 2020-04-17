@@ -31,5 +31,11 @@ def create_app(config_object=None):
         ma.init_app(app)
         migrate.init_app(app, db)
 
-        spec.path(view=views.post_message, app=app)
+        register_specs(app)
     return app
+
+
+def register_specs(app):
+    for view in app.view_functions.values():
+        if view.__name__ in ('post_message', 'get_message'):
+            spec.path(view=view, app=app)

@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import url_for
 from freezegun import freeze_time
 
-from api.models import Message
+from api.models import Message, MessageStatus
 
 
 def test_index_view(client):
@@ -26,11 +26,8 @@ def test_post_message__when_posted__should_create_message_in_db(client, db_sessi
     assert response.json == {'id': 1}
 
     message = Message.query.order_by(Message.id.desc()).first()
-    assert message.sender == 'AU'
-    assert message.receiver == 'CN'
-    assert message.subject == 'AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX'
-    assert message.obj == 'QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n'
-    assert message.predicate == 'UN.CEFACT.Trade.CertificateOfOrigin.created'
+    assert message.status == MessageStatus.CONFIRMED
+    assert message.payload == message_data
     assert message.created_at == datetime(2020, 4, 7, 14, 21, 22, 123456)
 
 
@@ -43,4 +40,30 @@ def test_post_message__when_missing_field__should_return_400(client):
         'receiver': ['Missing data for required field.'],
         'sender': ['Missing data for required field.'],
         'subject': ['Missing data for required field.']
+    }
+
+
+def test_get_message__when_not_exist__should_return_404(client, db_session):
+    response = client.get(url_for('views.get_message', id=123))
+    assert response.status_code == 404
+
+
+def test_get_message__when_missing_id__should_return_404(client, db_session):
+    response = client.get('/messages/')
+    assert response.status_code == 404
+
+
+def test_get_message__when_exist__should_return_it(client, db_session):
+    message = Message(id=42, payload={"sender": "AU"})
+    db_session.add(message)
+    db_session.commit()
+
+    response = client.get(url_for('views.get_message', id=42))
+    assert response.status_code == 200
+    assert response.json == {
+        'id': 42,
+        'status': 'confirmed',
+        'message': {
+            'sender': 'AU'
+        }
     }
