@@ -5,23 +5,26 @@ This is a simple channel implementation where the channel medium is a shared dat
 
 Development
 -----------
+Setup project (copy .env_sample to .env)::
+
+	./pie.py setup
 
 To (re-)build the service::
 
-	docker-compose build
+	./pie.py build
 
 To run the service execute the following command::
 
-	docker-compose up
+	./pie.py start
 
 To run tests::
 
-	docker-compose run api pytest
+	./pie.py test
 
-To start service using DB instance running on your host machine::
+To start service using DB instance running on your host machine. Use env to setup DB connection (or .env)::
 
-	docker-compose -f ./docker-compose-shared-db.yml up
+	DB_HOST=localhost DB_PORT=5432 ./pie.py start_channel_api
 
 To generate API spec::
 
-	docker-compose run api python ./manage.py generate_swagger
+	./pie.py generate_swagger

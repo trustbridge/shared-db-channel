@@ -8,7 +8,6 @@ services:
     volumes:
       - .:/src
     environment:
-      DATABASE_URI: postgresql+psycopg2://dbchannel:dbchannel@host.docker.internal/dbchannel
+      DATABASE_URI: postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
     ports: ['5000:5000']
-    command: bash -c "cd /src && ./scripts/runserver.sh"
-
+    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$DB_PORT && ./scripts/runserver.sh"
