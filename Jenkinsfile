@@ -71,14 +71,14 @@ pipeline {
                         }
                     }
 
-                }
-
-                post {
-                    always {
-                        dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/") {
-                            junit 'tests/*.xml'
+                    post {
+                        always {
+                            dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/") {
+                                junit 'tests/*.xml'
+                            }
                         }
                     }
+
                 }
             }
 
