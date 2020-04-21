@@ -1,24 +1,34 @@
 version: '3.5'
 
-services:
-  api:
+x-services:
+  base: &base-api
     build:
       context: .
       dockerfile: ./Dockerfile
     depends_on:
       - postgres
     environment:
-      DATABASE_URI: postgresql+psycopg2://dbchannel:dbchannel@postgres/dbchannel
+      DATABASE_URI: postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
     volumes:
       - .:/src
     ports: ['5000:5000']
-    command: bash -c "cd /src && ./scripts/wait-for-it.sh postgres:5432 && ./scripts/runserver.sh"
 
+
+
+services:
+  api:
+    <<: *base-api
+    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$DB_PORT && ./scripts/runserver.sh"
   postgres:
     image: postgres:10.5
     environment:
-      - POSTGRES_USER=dbchannel
-      - POSTGRES_PASSWORD=dbchannel
-      - POSTGRES_DB=dbchannel
-    ports: ['5432:5432']
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_DB=$DB_NAME
+    ports: ['${DB_PORT}:5432']
     restart: on-failure
+
+  tests:
+    <<: *base-api
+    container_name: tests
+    command: bash -c "cd /src && pytest"
