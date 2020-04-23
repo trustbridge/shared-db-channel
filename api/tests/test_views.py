@@ -53,12 +53,8 @@ def test_get_message__when_missing_id__should_return_404(client, db_session):
     assert response.status_code == 404
 
 
-def test_get_message__when_exist__should_return_it(client, db_session):
-    message = Message(id=42, payload={"sender": "AU"})
-    db_session.add(message)
-    db_session.commit()
-
-    response = client.get(url_for('views.get_message', id=42))
+def test_get_message__when_exist__should_return_it(client, message):
+    response = client.get(url_for('views.get_message', id=message.id))
     assert response.status_code == 200
     assert response.json == {
         'id': 42,
@@ -66,4 +62,12 @@ def test_get_message__when_exist__should_return_it(client, db_session):
         'message': {
             'sender': 'AU'
         }
+    }
+
+
+def test_get_message__when_fields_provided__should_return_only_requested_fields(client, message):
+    response = client.get(url_for('views.get_message', id=message.id) + '?fields=status')
+    assert response.status_code == 200
+    assert response.json == {
+        'status': 'confirmed',
     }

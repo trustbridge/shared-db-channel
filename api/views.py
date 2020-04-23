@@ -3,9 +3,11 @@ import json
 from flask import Blueprint, Response, request
 from flask import current_app
 from marshmallow import ValidationError
+from webargs import fields
+from webargs.flaskparser import use_kwargs
 
 from api.models import Message, db
-from api.schemas import MessagePayloadSchema, PostedMessageSchema, MessageSchema
+from api.schemas import MessagePayloadSchema, PostedMessageSchema, MessageSchema, dump_only_fields
 
 blueprint = Blueprint('views', __name__)
 
@@ -59,7 +61,8 @@ def post_message():
 
 
 @blueprint.route('/messages/<id>')
-def get_message(id):
+@use_kwargs({'fields': fields.DelimitedList(fields.Str())}, location="querystring")
+def get_message(id, fields=None):
     """
     Get message by ID
     ---
@@ -71,6 +74,14 @@ def get_message(id):
               schema:
                 type: integer
                 format: int64
+            - in: query
+              name: fields
+              schema:
+                type: array
+                items:
+                  type: string
+              style: form
+              explode: false
         responses:
             200:
                 description: Returns message object
@@ -82,4 +93,6 @@ def get_message(id):
     if not message:
         return Response(status=404)
     return_schema = MessageSchema()
-    return JsonResponse(return_schema.dump(message))
+
+    data = return_schema.dump(message)
+    return JsonResponse(dump_only_fields(data, fields))
