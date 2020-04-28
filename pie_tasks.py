@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 from pie_docker_compose import *
@@ -9,12 +10,13 @@ DOCKER_COMPOSE_SHARED_DB = DockerCompose('docker-compose-shared-db.yml')
 
 @task
 def setup():
+    env_file = '.env'
     with cd(ROOT_DIR):
-        if ROOT_DIR.joinpath('.env').exists():
+        if ROOT_DIR.joinpath(env_file).exists():
             print("Exit: .env already exists")
             exit(1)
-        print("Copying .env_sample to .env")
-        cmd('cp .env_sample .env')
+        print(f"Copying .env_sample to {env_file}")
+        shutil.copyfile('.env_sample', env_file)
 
 
 @task
@@ -59,7 +61,7 @@ def destroy():
 @task
 def test():
     with cd(ROOT_DIR):
-        DOCKER_COMPOSE_SHARED_DB.service('tests').cmd('run', options=['--rm'])
+        DOCKER_COMPOSE.service('tests').cmd('run', options=['--rm'])
 
 
 @task

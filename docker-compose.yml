@@ -19,6 +19,7 @@ services:
   api:
     <<: *base-api
     command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$DB_PORT && ./scripts/runserver.sh"
+
   postgres:
     image: postgres:10.5
     environment:
@@ -28,7 +29,8 @@ services:
     ports: ['${DB_PORT}:5432']
     restart: on-failure
 
+
   tests:
     <<: *base-api
     container_name: tests
-    command: bash -c "cd /src && pytest"
+    command: bash -c "cd /src && pytest --junitxml=/src/api/tests/results.xml"
