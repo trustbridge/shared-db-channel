@@ -55,8 +55,8 @@ pipeline {
                             checkout scm
 
                             sh '''#!/bin/bash
-                                docker-compose build
-                                docker-compose up -d
+                                python pie.py setup
+                                python pie.py build
                             '''
                         }
                     }
@@ -74,7 +74,7 @@ pipeline {
                     post {
                         always {
                             dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/") {
-                                junit 'tests/*.xml'
+                                junit 'api/tests/*.xml'
                             }
                         }
                     }
@@ -86,9 +86,7 @@ pipeline {
                 cleanup {
                     dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/") {
                         sh '''#!/bin/bash
-                            if [[ -f docker-compose.yml ]]; then
-                                docker-compose down --rmi local -v --remove-orphans
-                            fi
+                            python pie.py destroy
                         '''
                     }
                 }

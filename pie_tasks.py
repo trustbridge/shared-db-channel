@@ -61,7 +61,7 @@ def destroy():
 @task
 def test():
     with cd(ROOT_DIR):
-        DOCKER_COMPOSE_SHARED_DB.service('tests').cmd('run', options=['--rm'])
+        DOCKER_COMPOSE.service('tests').cmd('run', options=['--rm'])
 
 
 @task

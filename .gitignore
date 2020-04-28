@@ -26,3 +26,5 @@ htmlcov/
 # Flask-Migrate
 !env.py
 
+# test results
+/api/tests/results.xml
