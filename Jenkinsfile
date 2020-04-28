@@ -66,7 +66,7 @@ pipeline {
                     steps {
                         dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/")  {
                             sh '''#!/bin/bash
-                                docker-compose run api pytest --junitxml=/src/tests/junit.xml
+                                python pie.py test
                             '''
                         }
                     }
