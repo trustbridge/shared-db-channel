@@ -14,7 +14,6 @@ class BaseConfig(metaclass=MetaFlaskEnv):
 
 class ProductionConfig(BaseConfig):
     ENV = 'production'
-    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
 
 
 class AWSProductionConfig(ProductionConfig):
