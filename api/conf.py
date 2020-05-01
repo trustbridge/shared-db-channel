@@ -1,7 +1,7 @@
 from os import environ
 
 from flask_env import MetaFlaskEnv
-
+from api.aws import string_or_b64kms
 
 class BaseConfig(metaclass=MetaFlaskEnv):
     DEBUG = False
@@ -14,6 +14,14 @@ class BaseConfig(metaclass=MetaFlaskEnv):
 
 class ProductionConfig(BaseConfig):
     ENV = 'production'
+
+
+class AWSProductionConfig(ProductionConfig):
+    """Support for sensitive env vars encrypted with AWS KMS"""
+    KMS_PREFIX = environ.get('KMS_PREFIX', None)
+    AWS_REGION = environ.get('AWS_REGION', None)
+    if KMS_PREFIX and AWS_REGION:
+        SQLALCHEMY_DATABASE_URI = string_or_b64kms(environ.get('DATABASE_URI'), KMS_PREFIX, AWS_REGION)
 
 
 class DevelopmentConfig(BaseConfig):

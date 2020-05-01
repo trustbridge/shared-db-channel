@@ -15,3 +15,6 @@ webargs==6.0.0
 pytest==5.4.1
 pytest-flask-sqlalchemy==1.0.2
 freezegun==0.3.15
+
+# AWS Integration
+boto3==1.13.0
