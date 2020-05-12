@@ -32,7 +32,17 @@ pipeline {
     }
 
     stages {
-        // intergov required for running full test suite
+        stage('Setup') {
+            steps {
+                dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/") {
+                    script {
+                        def repoSharedDb = checkout scm
+                        env["GIT_COMMIT"] = repoSharedDb.GIT_COMMIT
+                    }
+                }
+            }
+        }
+
         stage('Testing') {
 
             when {
