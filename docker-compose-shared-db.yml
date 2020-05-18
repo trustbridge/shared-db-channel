@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/src
     environment:
-      DATABASE_URI: postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
-    ports: ['5000:5000']
-    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$DB_PORT && ./scripts/runserver.sh"
+      DATABASE_URI: postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$CONN_DB_PORT/$DB_NAME
+      API_PORT: $API_PORT
+    ports: ['$API_PORT:$API_PORT']
+    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT && ./scripts/runserver.sh"
