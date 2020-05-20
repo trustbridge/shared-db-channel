@@ -1,7 +1,10 @@
 from os import environ
 
 from flask_env import MetaFlaskEnv
+from libtrustbridge.utils.conf import env_s3_config
+
 from api.aws import string_or_b64kms
+
 
 class BaseConfig(metaclass=MetaFlaskEnv):
     DEBUG = False
@@ -10,6 +13,10 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     LOG_FORMATTER_JSON = False
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    def __init__(self):
+        if not hasattr(self, 'SUBSCRIPTION_REPO_CONF'):
+            self.SUBSCRIPTION_REPO_CONF = env_s3_config('SUBSCR_API_REPO')
 
 
 class ProductionConfig(BaseConfig):
@@ -36,3 +43,12 @@ class TestingConfig(BaseConfig):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     SERVER_NAME = 'localhost'
+    SUBSCRIPTION_REPO_CONF = {
+        'use_ssl': False,
+        'host': environ.get('TEST_SUBSCRIPTION_REPO_HOST'),
+        'port': '9000',
+        'bucket': 'default',
+        'region': 'test_region',
+        'secret_key': 'minio_secret_key',
+        'access_key': 'minio_access_key'
+    }
