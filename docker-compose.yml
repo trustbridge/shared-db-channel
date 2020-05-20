@@ -8,17 +8,16 @@ x-services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URI: postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
+      DATABASE_URI: postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$CONN_DB_PORT/$DB_NAME
+      API_PORT: $API_PORT
     volumes:
       - .:/src
-    ports: ['5000:5000']
-
-
 
 services:
   api:
     <<: *base-api
-    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$DB_PORT && ./scripts/runserver.sh"
+    ports: ['$API_PORT:$API_PORT']
+    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT && ./scripts/runserver.sh"
 
   postgres:
     image: postgres:10.5
@@ -26,7 +25,7 @@ services:
       - POSTGRES_USER=$DB_USER
       - POSTGRES_PASSWORD=$DB_PASSWORD
       - POSTGRES_DB=$DB_NAME
-    ports: ['${DB_PORT}:5432']
+    ports: ['${HOST_BIND_DB_PORT}:5432']
     restart: on-failure
 
 
