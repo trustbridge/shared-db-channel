@@ -76,7 +76,7 @@ class TestGetMessage:
         }
 
 
-@pytest.mark.usefixtures("client_class", "clean_subscription_repo")
+@pytest.mark.usefixtures("client_class", "clean_subscriptions_repo")
 class TestSubscriptions:
     def test_post__with_subscribe_mode__should_subscribe(self):
         params = {
@@ -90,11 +90,11 @@ class TestSubscriptions:
             data=urlencode(params)
         )
         assert response.status_code == 202, response.json
-        assert self.subscription_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
+        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
 
     def test_post__with_unsubscribe_mode__should_unsubscribe(self):
-        self.subscription_repo.subscribe_by_pattern(Pattern('aa.bb.cc'), 'https://callback.url/1', 30)
-        assert self.subscription_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
+        self.subscriptions_repo.subscribe_by_pattern(Pattern('aa.bb.cc'), 'https://callback.url/1', 30)
+        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
 
         params = {
             'hub.mode': 'unsubscribe',
@@ -107,7 +107,7 @@ class TestSubscriptions:
             data=urlencode(params)
         )
         assert response.status_code == 202, response.json
-        assert not self.subscription_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
+        assert not self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
 
     def test_post_with_wrong_params__should_return_error(self):
         params = {}

@@ -15,8 +15,8 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     def __init__(self):
-        if not hasattr(self, 'SUBSCRIPTION_REPO_CONF'):
-            self.SUBSCRIPTION_REPO_CONF = env_s3_config('SUBSCR_API_REPO')
+        if not hasattr(self, 'SUBSCRIPTIONS_REPO_CONF'):
+            self.SUBSCRIPTIONS_REPO_CONF = env_s3_config('SUBSCR_API_REPO')
 
 
 class ProductionConfig(BaseConfig):
@@ -43,12 +43,12 @@ class TestingConfig(BaseConfig):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     SERVER_NAME = 'localhost'
-    SUBSCRIPTION_REPO_CONF = {
+    SUBSCRIPTIONS_REPO_CONF = {
         'use_ssl': False,
-        'host': environ.get('TEST_SUBSCRIPTION_REPO_HOST'),
-        'port': environ.get('TEST_SUBSCRIPTION_REPO_PORT'),
+        'host': environ.get('TEST_SUBSCRIPTIONS_REPO_HOST'),
+        'port': environ.get('TEST_SUBSCRIPTIONS_REPO_PORT'),
         'bucket': 'default',
         'region': 'test_region',
-        'access_key': environ.get('TEST_SUBSCRIPTION_REPO_ACCESS_KEY'),
-        'secret_key': environ.get('TEST_SUBSCRIPTION_REPO_SECRET_KEY')
+        'access_key': environ.get('TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY'),
+        'secret_key': environ.get('TEST_SUBSCRIPTIONS_REPO_SECRET_KEY')
     }

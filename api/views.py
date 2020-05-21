@@ -139,7 +139,7 @@ class SubscriptionsView(View):
             raise SubscriptionNotFoundError() from e
 
     def _get_repo(self):
-        return SubscriptionsRepo(current_app.config.get('SUBSCRIPTION_REPO_CONF'))
+        return SubscriptionsRepo(current_app.config.get('SUBSCRIPTIONS_REPO_CONF'))
 
 
 blueprint.add_url_rule('/subscriptions/', view_func=SubscriptionsView.as_view('subscriptions'))

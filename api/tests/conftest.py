@@ -30,10 +30,10 @@ def message(db_session):
 
 
 @pytest.yield_fixture()
-def clean_subscription_repo(app, request):
-    repo = SubscriptionsRepo(app.config['SUBSCRIPTION_REPO_CONF'])
+def clean_subscriptions_repo(app, request):
+    repo = SubscriptionsRepo(app.config['SUBSCRIPTIONS_REPO_CONF'])
     assert repo._unsafe_is_empty_for_test()
     if request.cls is not None:
-        request.cls.subscription_repo = repo
+        request.cls.subscriptions_repo = repo
     yield repo
     repo._unsafe_clear_for_test()
