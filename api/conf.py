@@ -46,9 +46,9 @@ class TestingConfig(BaseConfig):
     SUBSCRIPTION_REPO_CONF = {
         'use_ssl': False,
         'host': environ.get('TEST_SUBSCRIPTION_REPO_HOST'),
-        'port': '9000',
+        'port': environ.get('TEST_SUBSCRIPTION_REPO_PORT'),
         'bucket': 'default',
         'region': 'test_region',
-        'secret_key': 'minio_secret_key',
-        'access_key': 'minio_access_key'
+        'access_key': environ.get('TEST_SUBSCRIPTION_REPO_ACCESS_KEY'),
+        'secret_key': environ.get('TEST_SUBSCRIPTION_REPO_SECRET_KEY')
     }

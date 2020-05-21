@@ -17,7 +17,7 @@ class SubscriptionRegisterUseCase:
         # this operation deletes all previous subscription for given url and pattern
         # and replaces them with new one. Techically it's create or update operation
 
-         self.subscriptions_repo.subscribe_by_pattern(Pattern(predicate), url,  expiration)
+        self.subscriptions_repo.subscribe_by_pattern(Pattern(predicate), url, expiration)
 
 
 class SubscriptionNotFound(Exception):
@@ -41,4 +41,3 @@ class SubscriptionDeregisterUseCase:
         if not subscriptions_by_url:
             raise SubscriptionNotFound()
         self.subscriptions_repo.bulk_delete([pattern.to_key(url)])
-
