@@ -1,13 +1,23 @@
 import json
+import marshmallow
+from http import HTTPStatus
 
 from flask import Blueprint, Response, request
 from flask import current_app
-from marshmallow import ValidationError
+from flask.views import View
+
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
+from libtrustbridge.utils.routing import mimetype
+from libtrustbridge.websub.constants import MODE_ATTR_SUBSCRIBE_VALUE
+from libtrustbridge.websub.exceptions import SubscriptionNotFoundError
+from libtrustbridge.websub.repos import SubscriptionsRepo
+from libtrustbridge.websub.schemas import SubscriptionForm
+
 from api.models import Message, db
 from api.schemas import MessagePayloadSchema, PostedMessageSchema, MessageSchema, dump_only_fields
+from api import use_cases
 
 blueprint = Blueprint('views', __name__)
 
@@ -50,7 +60,7 @@ def post_message():
     schema = MessagePayloadSchema()
     try:
         schema.load(request.json)
-    except ValidationError as e:
+    except marshmallow.ValidationError as e:
         return JsonResponse(e.messages, status=400)
 
     message = Message(payload=request.json)
@@ -96,3 +106,40 @@ def get_message(id, fields=None):
 
     data = return_schema.dump(message)
     return JsonResponse(dump_only_fields(data, fields))
+
+
+class SubscriptionsView(View):
+    methods = ['POST']
+
+    @mimetype(include=['application/x-www-form-urlencoded'])
+    def dispatch_request(self):
+        try:
+            form_data = SubscriptionForm().load(request.form.to_dict())
+        except marshmallow.ValidationError as e:  # TODO integrate marshmallow and libtrustbridge.errors.handlers
+            return JsonResponse(e.messages, status=400)
+
+        if form_data['mode'] == MODE_ATTR_SUBSCRIBE_VALUE:
+            self._subscribe(form_data['callback'], form_data['topic'], form_data['lease_seconds'])
+        else:
+            self._unsubscribe(form_data['callback'], form_data['topic'])
+
+        return Response(status=HTTPStatus.ACCEPTED)
+
+    def _subscribe(self, callback, topic, lease_seconds):
+        repo = self._get_repo()
+        use_case = use_cases.SubscriptionRegisterUseCase(repo)
+        use_case.execute(callback, topic, lease_seconds)
+
+    def _unsubscribe(self, callback, topic):
+        repo = self._get_repo()
+        use_case = use_cases.SubscriptionDeregisterUseCase(repo)
+        try:
+            use_case.execute(callback, topic)
+        except use_cases.SubscriptionNotFound as e:
+            raise SubscriptionNotFoundError() from e
+
+    def _get_repo(self):
+        return SubscriptionsRepo(current_app.config.get('SUBSCRIPTIONS_REPO_CONF'))
+
+
+blueprint.add_url_rule('/subscriptions/', view_func=SubscriptionsView.as_view('subscriptions'))

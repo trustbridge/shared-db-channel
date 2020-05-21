@@ -28,3 +28,5 @@ htmlcov/
 
 # test results
 /api/tests/results.xml
+
+/var/minio-data

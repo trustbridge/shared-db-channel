@@ -1,20 +1,23 @@
 Flask==1.1.2
 Flask-Env==2.0.0
 Flask-SQLAlchemy==2.4.1
-flask-marshmallow==0.11.0
-marshmallow-sqlalchemy==0.22.3
+flask-marshmallow==0.12.0
+marshmallow-sqlalchemy==0.23.0
 Flask-Script==2.0.6
 Flask-Migrate
 psycopg2-binary==2.8.5
-sentry_sdk[flask]==0.14.3
+sentry_sdk[flask]==0.14.4
 apispec[yaml,validation]==3.3.0
 apispec-webframeworks==0.5.2
-webargs==6.0.0
+webargs==6.1.0
 
 # test
-pytest==5.4.1
+pytest==5.4.2
+pytest-flask==1.0.0
 pytest-flask-sqlalchemy==1.0.2
 freezegun==0.3.15
 
 # AWS Integration
-boto3==1.13.0
+boto3==1.13.12
+
+git+https://github.com/trustbridge/libtrustbridge@5b16e013#egg=libtrustbridge
