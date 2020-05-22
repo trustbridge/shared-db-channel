@@ -15,11 +15,11 @@ class SubscriptionRegisterUseCase:
     def __init__(self, subscriptions_repo: repos.SubscriptionsRepo):
         self.subscriptions_repo = subscriptions_repo
 
-    def execute(self, url, predicate, expiration=None):
+    def execute(self, url, topic, expiration=None):
         # this operation deletes all previous subscription for given url and pattern
         # and replaces them with new one. Techically it's create or update operation
 
-        self.subscriptions_repo.subscribe_by_pattern(Pattern(predicate), url, expiration)
+        self.subscriptions_repo.subscribe_by_pattern(Pattern(topic), url, expiration)
 
 
 class SubscriptionNotFound(Exception):
@@ -36,8 +36,8 @@ class SubscriptionDeregisterUseCase:
     def __init__(self, subscriptions_repo: repos.SubscriptionsRepo):
         self.subscriptions_repo = subscriptions_repo
 
-    def execute(self, url, predicate):
-        pattern = Pattern(predicate=predicate)
+    def execute(self, url, topic):
+        pattern = Pattern(predicate=topic)
         subscriptions = self.subscriptions_repo.get_subscriptions_by_pattern(pattern)
         subscriptions_by_url = [s for s in subscriptions if s.callback_url == url]
         if not subscriptions_by_url:
@@ -56,7 +56,7 @@ class PublishStatusChangeUseCase:
 
     def publish(self, message: models.Message):
         job_payload = {
-            'predicate': f"message.{message.id}.status",
-            'payload': {'id': message.id}
+            'topic': f"message.{message.id}.status",
+            'content': {'id': message.id}
         }
         self.notifications_repo.post_job(job_payload)
