@@ -1,5 +1,7 @@
+from libtrustbridge.websub import repos
 from libtrustbridge.websub.domain import Pattern
-from libtrustbridge.websub.repos import SubscriptionsRepo
+
+from api import models
 
 
 class SubscriptionRegisterUseCase:
@@ -10,7 +12,7 @@ class SubscriptionRegisterUseCase:
     saves url, predicate(pattern), expiration to the storage.
     """
 
-    def __init__(self, subscriptions_repo: SubscriptionsRepo):
+    def __init__(self, subscriptions_repo: repos.SubscriptionsRepo):
         self.subscriptions_repo = subscriptions_repo
 
     def execute(self, url, predicate, expiration=None):
@@ -31,7 +33,7 @@ class SubscriptionDeregisterUseCase:
     on user's request removes the subscription to given url for given pattern
     """
 
-    def __init__(self, subscriptions_repo: SubscriptionsRepo):
+    def __init__(self, subscriptions_repo: repos.SubscriptionsRepo):
         self.subscriptions_repo = subscriptions_repo
 
     def execute(self, url, predicate):
@@ -41,3 +43,20 @@ class SubscriptionDeregisterUseCase:
         if not subscriptions_by_url:
             raise SubscriptionNotFound()
         self.subscriptions_repo.bulk_delete([pattern.to_key(url)])
+
+
+class PublishStatusChangeUseCase:
+    """
+    Given message status changed
+    message id should be sent for notification
+    """
+
+    def __init__(self, notification_repo: repos.NotificationsRepo):
+        self.notifications_repo = notification_repo
+
+    def publish(self, message: models.Message):
+        job_payload = {
+            'predicate': f"message.{message.id}",
+            'payload': {'id': message.id}
+        }
+        self.notifications_repo.post_job(job_payload)
