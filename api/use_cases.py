@@ -56,7 +56,7 @@ class PublishStatusChangeUseCase:
 
     def publish(self, message: models.Message):
         job_payload = {
-            'predicate': f"message.{message.id}",
+            'predicate': f"message.{message.id}.status",
             'payload': {'id': message.id}
         }
         self.notifications_repo.post_job(job_payload)
