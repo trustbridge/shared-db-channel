@@ -3,6 +3,10 @@ from pathlib import Path
 
 from pie_docker_compose import *
 
+
+from . import docs
+
+
 ROOT_DIR = Path('.').absolute()
 DOCKER_COMPOSE = DockerCompose('docker-compose.yml')
 DOCKER_COMPOSE_SHARED_DB = DockerCompose('docker-compose-shared-db.yml')
