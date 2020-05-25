@@ -8,14 +8,38 @@ it is only intended for use in development situations.
 Quick Start
 -----------
 
+The simplest case is that you want to start a single shared DB and create one endpoint that interacts with it. This will let you test posting messages through a node.
+
 .. code::
 
-   # Start a shared db
-   set/export DB_PORT=12345
+   pie db.default.start
+   pie api.au.start
+
+
+The next simplest case would be to spin up a second endpoint on the foreign side. This will let you test the foreign node receiving messages you posted and let you post messages from a foreign node and receive them back on your local node.
+
+.. code::
+
+   pie db.default.start
+   pie api.au.start
+   pie api.sg.start
+
+
+The more complex, real world scenario is to spin up multiple DBs, each with several endpoints interacting with them. To do this, you will have to specify port numbers and connection strings as environment variables.
+
+.. code::
+
+   SHARED_DB_PORT=xxxx
    pie db.start
 
-   # start an endpoint
-   set/export DB_PORT=12345
+   SHARED_DB_CONNECTION_STRING=postgres::/...
+   API_PORT=xxxx
+   API_COUNTRY=NZ
+   pie api.start
+
+   SHARED_DB_CONNECTION_STRING=postgres::/...
+   API_PORT=xxxx
+   API_COUNTRY=NZ
    pie api.start
 
 
