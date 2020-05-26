@@ -184,7 +184,7 @@ class DeliverCallbackUseCase:
         https://www.w3.org/TR/websub/#x7-content-distribution
         """
 
-        logger.info(f"Sending WebSub payload \n    {payload} to callback URL \n    {url}",)
+        logger.info("Sending WebSub payload \n    %s to callback URL \n    %s", payload, url)
         header = {
             'Link': f'<{self.hub_url}>; rel="hub"'
         }
@@ -192,8 +192,8 @@ class DeliverCallbackUseCase:
         if str(resp.status_code).startswith('2'):
             return
 
-        raise InvalidCallbackResponse(f"Subscription url {url} seems to be invalid, "
-                                      f"returns {resp.status_code}")
+        raise InvalidCallbackResponse("Subscription url %s seems to be invalid, "
+                                      "returns %s", url, resp.status_code)
 
     @staticmethod
     def _get_retry_time(attempt):
