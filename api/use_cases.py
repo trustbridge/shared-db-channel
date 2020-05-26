@@ -1,7 +1,11 @@
+import logging
+
 from libtrustbridge.websub import repos
 from libtrustbridge.websub.domain import Pattern
 
 from api import models
+
+logger = logging.getLogger(__name__)
 
 
 class SubscriptionRegisterUseCase:
@@ -60,3 +64,61 @@ class PublishStatusChangeUseCase:
             'content': {'id': message.id}
         }
         self.notifications_repo.post_job(job_payload)
+
+
+class DispatchMessageToSubscribersUseCase:
+    """
+    Used by the callbacks spreader worker.
+
+    This is the "fan-out" part of the WebSub,
+    where each event dispatched
+    to all the relevant subscribers.
+    For each event (notification),
+    it looks-up the relevant subscribers
+    and dispatches a callback task
+    so that they will be notified.
+
+    There is a downstream delivery processor
+    that actually makes the callback,
+    it is insulated from this process
+    by the delivery outbox message queue.
+
+    """
+
+    def __init__(
+            self, notifications_repo: repos.NotificationsRepo,
+            delivery_outbox_repo: repos.DeliveryOutboxRepo,
+            subscriptions_repo: repos.SubscriptionsRepo):
+        self.notifications = notifications_repo
+        self.delivery_outbox = delivery_outbox_repo
+        self.subscriptions = subscriptions_repo
+
+    def execute(self):
+        job = self.notifications.get_job()
+        if not job:
+            return
+        return self.process(*job)
+
+    def process(self, msg_id, payload):
+        subscriptions = self._get_subscriptions(payload['topic'])
+
+        content = payload['content']
+
+        for subscription in subscriptions:
+            if not subscription.is_valid:
+                continue
+            job = {
+                's': subscription.callback_url,
+                'payload': content,
+            }
+            logger.info("Scheduling notification of \n[%s] with the content \n%s", subscription.callback_url, content)
+            self.delivery_outbox.post_job(job)
+
+        self.notifications.delete(msg_id)
+
+    def _get_subscriptions(self, topic):
+        pattern = repos.Pattern(topic)
+        subscribers = self.subscriptions.get_subscriptions_by_pattern(pattern)
+        if not subscribers:
+            logger.info("Nobody to notify about the topic %s", topic)
+        return subscribers

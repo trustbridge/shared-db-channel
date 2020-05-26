@@ -1,7 +1,12 @@
+import time
+
 from apispec.exceptions import OpenAPIError
 from apispec.utils import validate_spec
 from flask_script import Command, Option
+from libtrustbridge.websub import repos
+from libtrustbridge.websub.processors import Processor
 
+from api import use_cases
 from api.docs import spec
 
 
@@ -29,3 +34,35 @@ class GenerateApiSpecCommand(Command):
             fp.write(spec.to_yaml())
 
         print(f'API spec has been written into {filename}')
+
+
+class RunProcessorCommand(Command):
+    def run(self):
+        processor = self.get_processor()
+
+        for result in processor:
+            if result is None:
+                time.sleep(1)
+
+    def get_processor(self):
+        raise NotImplementedError
+
+
+class RunCallbackSpreaderProcessorCommand(RunProcessorCommand):
+    """
+    Convert each incoming message to set of messages containing (websub_url, message)
+    so they may be sent and fail separately
+    """
+
+    def get_processor(self):
+        from flask import current_app
+        config = current_app.config
+        notifications_repo = repos.NotificationsRepo(config['NOTIFICATIONS_REPO_CONF'])
+        delivery_outbox_repo = repos.DeliveryOutboxRepo(config['DELIVERY_OUTBOX_REPO_CONF'])
+        subscriptions_repo = repos.SubscriptionsRepo(config.get('SUBSCRIPTIONS_REPO_CONF'))
+        use_case = use_cases.DispatchMessageToSubscribersUseCase(
+            notifications_repo=notifications_repo,
+            delivery_outbox_repo=delivery_outbox_repo,
+            subscriptions_repo=subscriptions_repo,
+        )
+        return Processor(use_case=use_case)

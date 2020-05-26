@@ -1,7 +1,7 @@
 from os import environ
 
 from flask_env import MetaFlaskEnv
-from libtrustbridge.utils.conf import env_s3_config
+from libtrustbridge.utils.conf import env_s3_config, env_queue_config
 
 from api.aws import string_or_b64kms
 
@@ -16,7 +16,11 @@ class BaseConfig(metaclass=MetaFlaskEnv):
 
     def __init__(self):
         if not hasattr(self, 'SUBSCRIPTIONS_REPO_CONF'):
-            self.SUBSCRIPTIONS_REPO_CONF = env_s3_config('SUBSCR_API_REPO')
+            self.SUBSCRIPTIONS_REPO_CONF = env_s3_config('SUBSCRIPTIONS_REPO')
+        if not hasattr(self, 'NOTIFICATIONS_REPO_CONF'):
+            self.NOTIFICATIONS_REPO_CONF = env_queue_config('NOTIFICATIONS_REPO')
+        if not hasattr(self, 'DELIVERY_OUTBOX_REPO_CONF'):
+            self.DELIVERY_OUTBOX_REPO_CONF = env_queue_config('DELIVERY_OUTBOX_REPO')
 
 
 class ProductionConfig(BaseConfig):
@@ -52,3 +56,18 @@ class TestingConfig(BaseConfig):
         'access_key': environ.get('TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY'),
         'secret_key': environ.get('TEST_SUBSCRIPTIONS_REPO_SECRET_KEY')
     }
+
+    test_elastic = {
+        'elasticmq': {
+            'use_ssl': False,
+            'host': environ.get('TEST_ELASTICMQ_REPO_HOST'),
+            'port': environ.get('TEST_ELASTICMQ_REPO_PORT'),
+            'context-path': '',
+            'region': 'elasticmq',
+            'access_key': 'x',
+            'secret_key': 'x'
+        }
+    }
+    NOTIFICATIONS_REPO_CONF = test_elastic
+
+    DELIVERY_OUTBOX_REPO_CONF = test_elastic
