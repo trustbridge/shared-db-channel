@@ -10,6 +10,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     DEBUG = False
     TESTING = False
     SERVICE_NAME = 'shared-db-channel'
+    HUB_URL = 'http://127.0.0.1:5001/'
     LOG_FORMATTER_JSON = False
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
