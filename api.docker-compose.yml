@@ -45,9 +45,9 @@ services:
     image: minio/minio
     command: server /minio-data
     environment:
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_access_key}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_secret_key}
-      - MINIO_HTTP_TRACE=/minio-data/requests.log
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio_access_key}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minio_secret_key}
+      MINIO_HTTP_TRACE: /minio-data/requests.log
     # we don't have to expose it directly to the host machine for our demo,
     # but it's useful for starting service on the host
     ports: ['${HOST_BIND_MINIO_PORT:-9001}:9000']
@@ -65,26 +65,26 @@ services:
   api:
     <<: *base-api
     ports: ['$API_PORT:$API_PORT']
-    #./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT &&
     environment:
-      - DATABASE_URI=${DATABASE_URI}
-      - IGL_SUBSCRIPTIONS_REPO_USE_SSL=False
-      - IGL_SUBSCRIPTIONS_REPO_HOST=minio
-      - IGL_SUBSCRIPTIONS_REPO_PORT=9000
-      - IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY=minio_access_key
-      - IGL_SUBSCRIPTIONS_REPO_SECRET_KEY=minio_secret_key
-      - IGL_NOTIFICATIONS_REPO_USE_SSL=False
-      - IGL_NOTIFICATIONS_REPO_REGION=elasticmq
-      - IGL_NOTIFICATIONS_REPO_HOST=elasticmq
-      - IGL_NOTIFICATIONS_REPO_PORT=9324
-      - IGL_NOTIFICATIONS_REPO_ACCESS_KEY=elasticmqaccess
-      - IGL_NOTIFICATIONS_REPO_SECRET_KEY=elasticmqsecret
-      - IGL_DELIVERY_OUTBOX_REPO_USE_SSL=False
-      - IGL_DELIVERY_OUTBOX_REPO_REGION=elasticmq
-      - IGL_DELIVERY_OUTBOX_REPO_HOST=elasticmq
-      - IGL_DELIVERY_OUTBOX_REPO_PORT=9324
-      - IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY=elasticmqaccess
-      - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY=elasticmqsecret
+      DATABASE_URI: ${DATABASE_URI}
+      IGL_SUBSCRIPTIONS_REPO_USE_SSL: 'False'
+      IGL_SUBSCRIPTIONS_REPO_HOST: minio
+      IGL_SUBSCRIPTIONS_REPO_PORT: 9000
+      IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY: minio_access_key
+      IGL_SUBSCRIPTIONS_REPO_SECRET_KEY: minio_secret_key
+      IGL_NOTIFICATIONS_REPO_USE_SSL: 'False'
+      IGL_NOTIFICATIONS_REPO_REGION: elasticmq
+      IGL_NOTIFICATIONS_REPO_HOST: elasticmq
+      IGL_NOTIFICATIONS_REPO_PORT: 9324
+      IGL_NOTIFICATIONS_REPO_ACCESS_KEY: elasticmqaccess
+      IGL_NOTIFICATIONS_REPO_SECRET_KEY: elasticmqsecret
+      IGL_DELIVERY_OUTBOX_REPO_USE_SSL: 'False'
+      IGL_DELIVERY_OUTBOX_REPO_REGION: elasticmq
+      IGL_DELIVERY_OUTBOX_REPO_HOST: elasticmq
+      IGL_DELIVERY_OUTBOX_REPO_PORT: 9324
+      IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY: elasticmqaccess
+      IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY: elasticmqsecret
+    #./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT &&
     command: bash -c "cd /src && echo $DATABASE_URI && ./scripts/runserver.sh"
 
   tests:
@@ -92,7 +92,7 @@ services:
     container_name: tests
     command: bash -c "cd /src && pytest --junitxml=/src/api/tests/results.xml"
     environment:
-      - TEST_SUBSCRIPTIONS_REPO_HOST=${TEST_SUBSCRIPTION_REPO_HOST:-minio}
-      - TEST_SUBSCRIPTIONS_REPO_PORT=${TEST_SUBSCRIPTION_REPO_PORT:-9000}
-      - TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_access_key}
-      - TEST_SUBSCRIPTIONS_REPO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_secret_key}
+      TEST_SUBSCRIPTIONS_REPO_HOST: ${TEST_SUBSCRIPTION_REPO_HOST:-minio}
+      TEST_SUBSCRIPTIONS_REPO_PORT: ${TEST_SUBSCRIPTION_REPO_PORT:-9000}
+      TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio_access_key}
+      TEST_SUBSCRIPTIONS_REPO_SECRET_KEY: ${MINIO_SECRET_KEY:-minio_secret_key}

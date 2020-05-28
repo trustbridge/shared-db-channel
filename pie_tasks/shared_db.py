@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from pie import *
+from pie_docker import *
 from pie_docker_compose import *
 
 
@@ -14,6 +15,9 @@ INSTANCE_ENVIRONMENTS={
     'au_sg_channel_1':{
         'COMPOSE_PROJECT_NAME':'au_sg_channel_1',
         'DB_PORT':'17432',
+        'POSTGRES_USER':'db_channel',
+        'POSTGRES_PASSWORD':'db_channel',
+        'POSTGRES_DB':'db_channel',
     },
 }
 
@@ -21,8 +25,7 @@ INSTANCE_ENVIRONMENTS={
 @task
 def start():
     with env(INSTANCE_ENVIRONMENTS['au_sg_channel_1']):
-        DOCKER_COMPOSE.cmd('up', options=['-d'])
-        # DOCKER_COMPOSE.service('api').cmd('run', options=['--rm'], container_cmd='python ./manage.py db upgrade')
+        DOCKER_COMPOSE.cmd('up',options=['-d'])
 
 
 @task
@@ -34,4 +37,13 @@ def stop():
 @task
 def destroy():
     with env(INSTANCE_ENVIRONMENTS['au_sg_channel_1']):
-        DOCKER_COMPOSE.cmd('down',options=['-v', '--rmi all'])
+        DOCKER_COMPOSE.cmd('down',options=['-v','--rmi local'])# --rmi all
+
+
+@task
+def logs():
+    Docker().cmd('logs',['au_sg_channel_1_postgres_1'])
+
+@task
+def show_env():
+    Docker().cmd('exec',['au_sg_channel_1_postgres_1','env'])

@@ -5,6 +5,44 @@ The Shared DB Channel is a simplistic, non-blockchain implementation of an IGL N
 it is only intended for use in development situations.
 
 
+WIP Process
+-----------
+
+Env vars are hardcoded into pie_tasks
+
+Start the shared db and create the schema
+
+.. code::
+
+   pie shared_db.destroy
+   pie shared_db.start
+   # other tasks useful for dev: logs, show_env
+   pie api.build
+   pie api.upgrade_db_schema
+
+
+Start the api endpoint
+
+.. code::
+
+   pie api.build
+   pie api.start
+
+
+Next step, extract env vars from pie_tasks and put env files (cross platform compatible) for various instances together and make them simple to run. Eg. so that you could run a single extra command/set a single environment variable to select the configuration required and spin up an instance:
+
+.. code::
+
+   set SHARED_DB_INSTANCE=AU_SG_CHANNEL_AU_ENDPOINT
+   # this shouldn't be required for api.build, but I think it currently is as it needs a valid yml file
+   pie api.start
+
+   set SHARED_DB_INSTANCE=AU_SG_CHANNEL
+   pie.shared_db.start
+
+   This also needs to maintain docker-compose separation (setting COMPOSE_PROJECT_NAME should do this; perhaps we continue to use this to select the instance)
+
+
 Quick Start
 -----------
 

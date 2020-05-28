@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 from pie import *
+from pie_docker import *
 from pie_docker_compose import *
 
 
@@ -64,3 +65,13 @@ def generate_swagger():
     DOCKER_COMPOSE_SHARED_DB.service('api').cmd(
         'run', options=['--rm'], container_cmd='python ./manage.py generate_swagger'
     )
+
+
+@task
+def upgrade_db_schema():
+    with env(INSTANCE_ENVIRONMENTS['au_sg_channel_au_endpoint']):
+        DOCKER_COMPOSE.service('api').cmd('run', options=['--rm'], container_cmd='python ./manage.py db upgrade')
+
+@task
+def logs():
+    Docker().cmd('logs',['au_sg_channel_au_endpoint_api_1'])
