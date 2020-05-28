@@ -16,8 +16,9 @@ pytest==5.4.2
 pytest-flask==1.0.0
 pytest-flask-sqlalchemy==1.0.2
 freezegun==0.3.15
+responses==0.10.14
 
 # AWS Integration
 boto3==1.13.12
 
-git+https://github.com/trustbridge/libtrustbridge@5b16e013#egg=libtrustbridge
+git+https://github.com/trustbridge/libtrustbridge@c7caef3a#egg=libtrustbridge

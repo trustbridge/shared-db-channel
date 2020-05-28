@@ -1,5 +1,7 @@
 import logging
+import random
 
+import requests
 from libtrustbridge.websub import repos
 from libtrustbridge.websub.domain import Pattern
 
@@ -13,7 +15,7 @@ class SubscriptionRegisterUseCase:
     Used by the subscription API
 
     Initialised with the subscription repo,
-    saves url, predicate(pattern), expiration to the storage.
+    saves url, pattern, expiration to the storage.
     """
 
     def __init__(self, subscriptions_repo: repos.SubscriptionsRepo):
@@ -41,7 +43,7 @@ class SubscriptionDeregisterUseCase:
         self.subscriptions_repo = subscriptions_repo
 
     def execute(self, url, topic):
-        pattern = Pattern(predicate=topic)
+        pattern = Pattern(topic)
         subscriptions = self.subscriptions_repo.get_subscriptions_by_pattern(pattern)
         subscriptions_by_url = [s for s in subscriptions if s.callback_url == url]
         if not subscriptions_by_url:
@@ -122,3 +124,82 @@ class DispatchMessageToSubscribersUseCase:
         if not subscribers:
             logger.info("Nobody to notify about the topic %s", topic)
         return subscribers
+
+
+class InvalidCallbackResponse(Exception):
+    pass
+
+
+class DeliverCallbackUseCase:
+    """
+    Is used by a callback deliverer worker
+
+    Reads queue delivery_outbox_repo consisting of tasks in format:
+        (url, message)
+
+    Then such message should be either sent to this URL and the task is deleted
+    or, in case of any error, not to be re-scheduled again
+    (up to MAX_ATTEMPTS times)
+
+    """
+
+    MAX_ATTEMPTS = 3
+
+    def __init__(self, delivery_outbox_repo: repos.DeliveryOutboxRepo, hub_url):
+        self.delivery_outbox = delivery_outbox_repo
+        self.hub_url = hub_url
+
+    def execute(self):
+        deliverable = self.delivery_outbox.get_job()
+        if not deliverable:
+            return
+
+        queue_msg_id, payload = deliverable
+        return self.process(queue_msg_id, payload)
+
+    def process(self, queue_msg_id, job):
+        subscribe_url = job['s']
+        payload = job['payload']
+        attempt = int(job.get('retry', 1))
+
+        try:
+            self._deliver_notification(subscribe_url, payload)
+        except InvalidCallbackResponse as e:
+            logger.exception(e)
+            if attempt < self.MAX_ATTEMPTS:
+                self._retry(subscribe_url, payload, attempt)
+
+        self.delivery_outbox.delete(queue_msg_id)
+
+    def _retry(self, subscribe_url, payload, attempt):
+        logger.info("Delivery failed, re-schedule it")
+        job = {'s': subscribe_url, 'payload': payload, 'retry': attempt + 1}
+        self.delivery_outbox.post_job(job, delay_seconds=self._get_retry_time(attempt))
+
+    def _deliver_notification(self, url, payload):
+        """
+        Send the payload to subscriber's callback url
+
+        https://indieweb.org/How_to_publish_and_consume_WebSub
+        https://www.w3.org/TR/websub/#x7-content-distribution
+        """
+
+        logger.info("Sending WebSub payload \n    %s to callback URL \n    %s", payload, url)
+        header = {
+            'Link': f'<{self.hub_url}>; rel="hub"'
+        }
+        resp = requests.post(url, json=payload, headers=header)
+        if str(resp.status_code).startswith('2'):
+            return
+
+        raise InvalidCallbackResponse("Subscription url %s seems to be invalid, "
+                                      "returns %s", url, resp.status_code)
+
+    @staticmethod
+    def _get_retry_time(attempt):
+        """exponential back off with jitter"""
+        base = 8
+        max_retry = 100
+        delay = min(base * 2 ** attempt, max_retry)
+        jitter = random.uniform(0, delay / 2)
+        return int(delay / 2 + jitter)

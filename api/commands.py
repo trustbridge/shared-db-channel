@@ -66,3 +66,20 @@ class RunCallbackSpreaderProcessorCommand(RunProcessorCommand):
             subscriptions_repo=subscriptions_repo,
         )
         return Processor(use_case=use_case)
+
+
+class RunCallbackDeliveryProcessorCommand(RunProcessorCommand):
+    """
+    Iterate over the DeliverCallbackUseCase.
+    """
+
+    def get_processor(self):
+        from flask import current_app
+        config = current_app.config
+        delivery_outbox_repo = repos.DeliveryOutboxRepo(config['DELIVERY_OUTBOX_REPO_CONF'])
+
+        use_case = use_cases.DeliverCallbackUseCase(
+            delivery_outbox_repo=delivery_outbox_repo,
+            hub_url=config['HUB_URL'],
+        )
+        return Processor(use_case=use_case)
