@@ -4,13 +4,18 @@ x-services:
   base: &base-api
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./api.Dockerfile
     depends_on:
-      - postgres
+      # - postgres
       - minio
+    # env_file:
+    #   - ./api.env
+    #   - ./api_${COMPOSE_PROJECT_NAME}.env
+    #   # -local file is not in the repo, but where you can make local changes as required
+    #   - ./api_${COMPOSE_PROJECT_NAME}-local.env
     environment:
-      - DATABASE_URI=postgresql+psycopg2://$DB_USER:$DB_PASSWORD@$DB_HOST:$CONN_DB_PORT/$DB_NAME
-      - API_PORT=$API_PORT
+      - API_PORT=${API_PORT}
+      - DATABASE_URI=${DATABASE_URI}
 
       - IGL_SUBSCRIPTIONS_REPO_USE_SSL=${IGL_SUBSCRIPTIONS_REPO_USE_SSL:-False}
       - IGL_SUBSCRIPTIONS_REPO_HOST=${IGL_SUBSCRIPTIONS_REPO_HOST:-minio}
@@ -35,20 +40,6 @@ x-services:
       - .:/src
 
 services:
-  api:
-    <<: *base-api
-    ports: ['$API_PORT:$API_PORT']
-    command: bash -c "cd /src && ./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT && ./scripts/runserver.sh"
-
-  postgres:
-    image: postgres:10.5
-    environment:
-      - POSTGRES_USER=$DB_USER
-      - POSTGRES_PASSWORD=$DB_PASSWORD
-      - POSTGRES_DB=$DB_NAME
-    ports: ['${HOST_BIND_DB_PORT}:5432']
-    restart: on-failure
-
   minio:
     # https://docs.min.io/docs/minio-docker-quickstart-guide.html
     image: minio/minio
@@ -70,6 +61,32 @@ services:
     volumes: ['./elasticmq.conf:/opt/elasticmq.conf']
     restart: on-failure
 
+
+  api:
+    <<: *base-api
+    ports: ['$API_PORT:$API_PORT']
+    #./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT &&
+    environment:
+      - DATABASE_URI=${DATABASE_URI}
+      - IGL_SUBSCRIPTIONS_REPO_USE_SSL=False
+      - IGL_SUBSCRIPTIONS_REPO_HOST=minio
+      - IGL_SUBSCRIPTIONS_REPO_PORT=9000
+      - IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY=minio_access_key
+      - IGL_SUBSCRIPTIONS_REPO_SECRET_KEY=minio_secret_key
+      - IGL_NOTIFICATIONS_REPO_USE_SSL=False
+      - IGL_NOTIFICATIONS_REPO_REGION=elasticmq
+      - IGL_NOTIFICATIONS_REPO_HOST=elasticmq
+      - IGL_NOTIFICATIONS_REPO_PORT=9324
+      - IGL_NOTIFICATIONS_REPO_ACCESS_KEY=elasticmqaccess
+      - IGL_NOTIFICATIONS_REPO_SECRET_KEY=elasticmqsecret
+      - IGL_DELIVERY_OUTBOX_REPO_USE_SSL=False
+      - IGL_DELIVERY_OUTBOX_REPO_REGION=elasticmq
+      - IGL_DELIVERY_OUTBOX_REPO_HOST=elasticmq
+      - IGL_DELIVERY_OUTBOX_REPO_PORT=9324
+      - IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY=elasticmqaccess
+      - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY=elasticmqsecret
+    command: bash -c "cd /src && echo $DATABASE_URI && ./scripts/runserver.sh"
+
   tests:
     <<: *base-api
     container_name: tests
@@ -79,5 +96,3 @@ services:
       - TEST_SUBSCRIPTIONS_REPO_PORT=${TEST_SUBSCRIPTION_REPO_PORT:-9000}
       - TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_access_key}
       - TEST_SUBSCRIPTIONS_REPO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_secret_key}
-      - IGL_ALLOW_UNSAFE_REPO_IS_EMPTY=True
-      - IGL_ALLOW_UNSAFE_REPO_CLEAR=True

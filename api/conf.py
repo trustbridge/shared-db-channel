@@ -40,6 +40,8 @@ class DevelopmentConfig(BaseConfig):
     ENV = 'development'
     DEBUG = True
     LOCAL_DB = 'postgresql+psycopg2://dbchannel:dbchannel@127.0.0.1/dbchannel'
+    LOCAL_DB = 'blah'
+    print(environ.get('DATABASE_URI'))
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI', LOCAL_DB)
 
 
