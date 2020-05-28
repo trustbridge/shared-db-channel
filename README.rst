@@ -9,6 +9,8 @@ Setup project (copy .env_sample to .env)::
 
 	./pie.py setup
 
+Detailed information about the purpose of each env variable can be found in .env_sample
+
 To (re-)build the service::
 
 	./pie.py build
