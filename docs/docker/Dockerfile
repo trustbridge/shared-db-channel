@@ -7,5 +7,6 @@ RUN apt-get update && \
     apt-get -y install enchant && \
     apt-get -y install plantuml
 
-COPY docs/requirements.txt docs
+RUN mkdir -p docs
+COPY ./docs/requirements.txt docs/
 RUN pip install --no-cache-dir -r docs/requirements.txt
