@@ -7,7 +7,7 @@ from pie_docker_compose import *
 
 
 ROOT_DIR = Path('.').absolute()
-DOCKER_COMPOSE = DockerCompose('api.docker-compose.yml')
+DOCKER_COMPOSE = DockerCompose(ROOT_DIR/'docker/api.docker-compose.yml')
 
 
 

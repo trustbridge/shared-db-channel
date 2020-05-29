@@ -7,7 +7,7 @@ from pie_docker_compose import *
 
 
 ROOT_DIR = Path('.').absolute()
-DOCKER_COMPOSE = DockerCompose('shared_db.docker-compose.yml')
+DOCKER_COMPOSE = DockerCompose(ROOT_DIR/'docker/shared_db.docker-compose.yml')
 
 
 # This needs more work but because docker-compose has complicated, inconsistent and inflexible rules about how environment variables work (https://docs.docker.com/compose/environment-variables/) we will just do it ourselves...
