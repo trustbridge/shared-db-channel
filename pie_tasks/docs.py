@@ -9,7 +9,7 @@ DOCS_BUILDER_IMAGE_NAME='igl__shared_db_channel/docs_builder'
 
 
 def _run_docs_builder(c,listen_port=False):
-    run_options=['--rm','-it',f'-v "{ROOT_DIR}:/app" --name igl__shared_db_channel__docs_builder']
+    run_options=['--rm','-it',f'-v "{ROOT_DIR}:/app"','--name igl__shared_db_channel__docs_builder']
     if listen_port:
         run_options.append('-p 8992:80')
     Docker().run(DOCS_BUILDER_IMAGE_NAME,c,run_options)
@@ -18,7 +18,7 @@ def _run_docs_builder(c,listen_port=False):
 @task
 def create_docker_image():
     """Create the docker image that can build the docs"""
-    Docker().build('.',['-f docs/docker/Dockerfile',f'-t {DOCS_BUILDER_IMAGE_NAME}','--rm'])
+    Docker().build('.',['-f docs/docker/Dockerfile',f'-t {DOCS_BUILDER_IMAGE_NAME}','--no-cache','--rm'])
 
 
 @task

@@ -22,5 +22,5 @@ version = '0.0.1'
 release = version
 exclude_patterns = ['_build', '.venv']
 pygments_style = 'sphinx'
-html_theme = 'default'
+html_theme = 'alabaster'
 html_static_path = ['_static']
