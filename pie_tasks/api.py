@@ -6,15 +6,15 @@ from pie_docker import *
 from pie_docker_compose import *
 from pie_env_ext import *
 
+from .utils import requires_compose_project_name
+
 
 ROOT_DIR = Path('.').absolute()
 ENV_DIR = ROOT_DIR/'docker'
 DOCKER_COMPOSE = DockerCompose(ROOT_DIR/'docker/api.docker-compose.yml')
 
 def INSTANCE_ENVIRONMENT():
-    COMPOSE_PROJECT_NAME=env.get('COMPOSE_PROJECT_NAME',None)
-    if not COMPOSE_PROJECT_NAME:
-        raise Exception('COMPOSE_PROJECT_NAME environment variable is required')
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
     return env.from_files(
         ENV_DIR/'api.env',
         ENV_DIR/f'api_{COMPOSE_PROJECT_NAME}.env',
@@ -63,17 +63,17 @@ def upgrade_db_schema():
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.service('api').cmd('run', options=['--rm'], container_cmd='python ./manage.py db upgrade')
 
+
 @task
 def logs():
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
     Docker().cmd('logs',['au_sg_channel_au_endpoint_api_1'])
 
-
 @task
-def test_env():
-    with INSTANCE_ENVIRONMENT():
-        import os   
-        print(os.environ['API_PORT'])
-    # Docker().cmd('logs',['au_sg_channel_au_endpoint_api_1'])
+def show_env():
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
+    Docker().cmd('exec',[f'{COMPOSE_PROJECT_NAME}_api_1','env'])
+
 
 # sub hub url
 # channel endpoint endpoint for changing statuses

@@ -5,18 +5,12 @@ from pie_docker import *
 from pie_docker_compose import *
 from pie_env_ext import *
 
+from .utils import requires_compose_project_name
+
 
 ROOT_DIR = Path('.').absolute()
 ENV_DIR = ROOT_DIR/'docker'
 DOCKER_COMPOSE = DockerCompose(ROOT_DIR/'docker/shared_db.docker-compose.yml')
-
-
-def requires_compose_project_name():
-    """Using this means we don't have to define COMPOSE_PROJECT_NAME for `docs.` tasks"""
-    COMPOSE_PROJECT_NAME=env.get('COMPOSE_PROJECT_NAME',None)
-    if not COMPOSE_PROJECT_NAME:
-        raise Exception('COMPOSE_PROJECT_NAME environment variable is required')
-    return COMPOSE_PROJECT_NAME
 
 def INSTANCE_ENVIRONMENT():
     COMPOSE_PROJECT_NAME=requires_compose_project_name()
