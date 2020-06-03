@@ -1,89 +1,14 @@
 Usage
 =====
 
-The Shared DB Channel is a simplistic, non-blockchain implementation of an IGL Node. Due to its non-distributed nature (the "channel medium" is a central, shared DB),
-it is only intended for use in development situations.
-
-
-WIP Process
------------
-
-Env vars are hardcoded into pie_tasks
-
-Start the shared db and create the schema
-
-.. code::
-
-   pie shared_db.destroy
-   pie shared_db.start
-   # other tasks useful for dev: logs, show_env
-   pie api.build
-   pie api.upgrade_db_schema
-
-
-Start the api endpoint
-
-.. code::
-
-   pie api.build
-   pie api.start
-
-
-Next step, extract env vars from pie_tasks and put env files (cross platform compatible) for various instances together and make them simple to run. Eg. so that you could run a single extra command/set a single environment variable to select the configuration required and spin up an instance:
-
-.. code::
-
-   set SHARED_DB_INSTANCE=AU_SG_CHANNEL_AU_ENDPOINT
-   # this shouldn't be required for api.build, but I think it currently is as it needs a valid yml file
-   pie api.start
-
-   set SHARED_DB_INSTANCE=AU_SG_CHANNEL
-   pie.shared_db.start
-
-   This also needs to maintain docker-compose separation (setting COMPOSE_PROJECT_NAME should do this; perhaps we continue to use this to select the instance)
-
-
-Quick Start
------------
-
-The simplest case is that you want to start a single shared DB and create one endpoint that interacts with it. This will let you test posting messages through a node.
-
-.. code::
-
-   pie db.default.start
-   pie api.au.start
-
-
-The next simplest case would be to spin up a second endpoint on the foreign side. This will let you test the foreign node receiving messages you posted and let you post messages from a foreign node and receive them back on your local node.
-
-.. code::
-
-   pie db.default.start
-   pie api.au.start
-   pie api.sg.start
-
-
-The more complex, real world scenario is to spin up multiple DBs, each with several endpoints interacting with them. To do this, you will have to specify port numbers and connection strings as environment variables.
-
-.. code::
-
-   SHARED_DB_PORT=xxxx
-   pie db.start
-
-   SHARED_DB_CONNECTION_STRING=postgres::/...
-   API_PORT=xxxx
-   API_COUNTRY=NZ
-   pie api.start
-
-   SHARED_DB_CONNECTION_STRING=postgres::/...
-   API_PORT=xxxx
-   API_COUNTRY=NZ
-   pie api.start
-
+The Shared DB Channel is a simplistic, non-blockchain implementation of an IGL Node. Due to its non-distributed nature
+(the "channel medium" is a central, shared DB), it is only intended for use in development situations.
 
 
 Architecture
 ------------
+
+A shared database is used by multiple channel endpoints:
 
 .. uml::
 
@@ -98,7 +23,7 @@ Architecture
       [<<Flask API>>\nChannel Endpoint 1] as channel_endpoint_1
       [<<Flask API>>\nChannel Endpoint 2] as channel_endpoint_2
       [<<Flask API>>\nChannel Endpoint 3] as channel_endpoint_3
-      Database "<<PostgreSQL DB>>\nChannel Medium" as channel_medium
+      Database "<<PostgreSQL DB>>\nChannel Medium\nShared DB" as channel_medium
    }
 
    intergov_node_1 <--> channel_endpoint_1
@@ -108,3 +33,59 @@ Architecture
    channel_endpoint_2 <-- channel_medium
    channel_endpoint_3 --> channel_medium
    @enduml
+
+
+Each instance of a shared DB channel has one PostgreSQL DB and 2 or more channel endpoints.
+A separate channel would have its own instance of the shared DB and its own instances of channel endpoints.
+
+.. uml::
+
+   @startuml
+   caption Instance of a single channel endpoint
+
+   package "Channel Endpoint" {
+      [<<Flask API>>\nChannel Endpoint API] as api
+      [<<Minio>>\nSubscription Store] as subscription_store
+      [<<ElasticMQ>>\nSubscription Event Queue] as subscription_event_queue
+   }
+   Database "<<PostgreSQL DB>>\nChannel Medium\nShared DB" as channel_medium
+
+   api <--> channel_medium
+   @enduml
+
+
+Instances can be spun up quickly using docker-compose. ``COMPOSE_PROJECT_NAME`` is used to select the instance to run.
+
+In the ``docker`` folder, there are ``.env`` files to configure particular instances of the components.
+
+ - ``api.env`` contains settings that apply to ALL instances of the channel endpoint API.
+ - ``api_<COMPOSE_PROJECT_NAME>.env`` contains settings specific to that channel endpoint API instance.
+ - ``api_<COMPOSE_PROJECT_NAME>_local.env`` is missing but can override settings from the other two files for your specific local needs.
+
+The same structure is used for the ``shared_db`` component. ``shared_db.env``, ``shared_db_<COMPOSE_PROJECT_NAME>.env`` and ``shared_db_<COMPOSE_PROJECT_NAME>_local.env``.
+
+All ``api_*_local.env`` and ``shared_db_*_local.env`` files are .gitignored.
+
+
+Dev Instances
+-------------
+
+An AU-SG channel can be run with:
+
+.. code::
+
+   export/set COMPOSE_PROJECT_NAME=au_sg_channel
+   pie shared_db.destroy
+   pie shared_db.start
+   # other tasks useful for dev: logs, show_env
+
+   # TODO: remove dependence on the API for creation of the schema
+   export/set COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
+   pie api.build
+   pie api.upgrade_db_schema
+
+   # and start the API endpoint
+   export/set COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
+   pie api.build
+   pie api.start
+   # other tasks: stop, destroy, test, generate_swagger

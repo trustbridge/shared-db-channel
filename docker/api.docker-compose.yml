@@ -3,8 +3,8 @@ version: '3.5'
 x-services:
   base: &base-api
     build:
-      context: .
-      dockerfile: ./api.Dockerfile
+      context: ../
+      dockerfile: docker/api.Dockerfile
     depends_on:
       # - postgres
       - minio
@@ -37,7 +37,7 @@ x-services:
       - IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY=${IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY:-elasticmqaccess}
       - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY=${IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY:-elasticmqsecret}
     volumes:
-      - .:/src
+      - ..:/src
 
 services:
   minio:
@@ -85,7 +85,8 @@ services:
       IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY: elasticmqaccess
       IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY: elasticmqsecret
     #./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT &&
-    command: bash -c "cd /src && echo $DATABASE_URI && ./scripts/runserver.sh"
+    #command: bash -c "pwd && ls -al"
+    command: bash -c "echo $DATABASE_URI && ./scripts/runserver.sh"
 
   tests:
     <<: *base-api

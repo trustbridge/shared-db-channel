@@ -26,7 +26,11 @@ htmlcov/
 # Flask-Migrate
 !env.py
 
+# local environment files
+/docker/api_*_local.env
+/docker/shared_db_*_local.env
+
 # test results
 /api/tests/results.xml
 
-/var/minio-data
+/docker/var/minio-data

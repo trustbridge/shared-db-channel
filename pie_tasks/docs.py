@@ -11,7 +11,7 @@ DOCS_BUILDER_IMAGE_NAME='igl__shared_db_channel/docs_builder'
 def _run_docs_builder(c,listen_port=False):
     run_options=['--rm','-it','-v "{}:/app"'.format(ROOT_DIR)]
     if listen_port:
-        run_options.append('-p 8998:8998')
+        run_options.append('-p 8992:80')
     Docker().run(DOCS_BUILDER_IMAGE_NAME,c,run_options)
 
 
@@ -41,7 +41,7 @@ def build_docs_autobuild():
         '-a',
         '-v',
         '-b html',
-        '-p 8998',
+        '-p 80',
         '-H 0.0.0.0',
         '--ignore docs/_build/*',
         'docs',
