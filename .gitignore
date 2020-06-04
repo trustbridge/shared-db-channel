@@ -34,3 +34,4 @@ htmlcov/
 /api/tests/results.xml
 
 /docker/var/minio-data
+*~
