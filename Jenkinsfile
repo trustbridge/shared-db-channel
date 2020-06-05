@@ -65,8 +65,14 @@ pipeline {
                             checkout scm
 
                             sh '''#!/bin/bash
-                                python pie.py setup
-                                python pie.py build
+                                export COMPOSE_PROJECT_NAME=au_sg_channel
+                                python3 pie.py shared_db.destroy
+                                python3 pie.py shared_db.start
+                                
+                                export COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
+                                python3 pie.py api.build
+                                python3 pie.py api.upgrade_db_schema
+                                python3 pie.py api.start
                             '''
                         }
                     }
@@ -76,7 +82,10 @@ pipeline {
                     steps {
                         dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/")  {
                             sh '''#!/bin/bash
-                                python pie.py test
+                                export COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
+                                export IGL_ALLOW_UNSAFE_REPO_CLEAR=True
+                                export IGL_ALLOW_UNSAFE_REPO_IS_EMPTY=True
+                                python3 pie.py api.test
                             '''
                         }
                     }
@@ -96,7 +105,10 @@ pipeline {
                 cleanup {
                     dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/") {
                         sh '''#!/bin/bash
-                            python pie.py destroy
+                            export COMPOSE_PROJECT_NAME=au_sg_channel
+                            python3 pie.py shared_db.destroy
+                            export COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
+                            python3 pie.py api.destroy
                         '''
                     }
                 }
