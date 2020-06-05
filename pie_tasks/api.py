@@ -73,6 +73,7 @@ def logs():
 def show_env():
     COMPOSE_PROJECT_NAME=requires_compose_project_name()
     Docker().cmd('exec',[f'{COMPOSE_PROJECT_NAME}_api_1','env'])
+    Docker().cmd('exec',[f'{COMPOSE_PROJECT_NAME}_api_1','pip list'])
 
 
 # sub hub url
