@@ -61,7 +61,6 @@ class TestingConfig(BaseConfig):
     }
 
     test_elastic = {
-        'elasticmq': {
             'use_ssl': False,
             'host': environ.get('TEST_ELASTICMQ_REPO_HOST'),
             'port': environ.get('TEST_ELASTICMQ_REPO_PORT'),
@@ -69,7 +68,6 @@ class TestingConfig(BaseConfig):
             'region': 'elasticmq',
             'access_key': 'x',
             'secret_key': 'x'
-        }
     }
     NOTIFICATIONS_REPO_CONF = test_elastic
 

@@ -12,7 +12,7 @@ from webargs.flaskparser import use_kwargs
 from libtrustbridge.utils.routing import mimetype
 from libtrustbridge.websub.constants import MODE_ATTR_SUBSCRIBE_VALUE
 from libtrustbridge.websub.exceptions import SubscriptionNotFoundError
-from libtrustbridge.websub.repos import SubscriptionsRepo
+from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 from libtrustbridge.websub.schemas import SubscriptionForm
 
 from api.models import Message, db
@@ -67,6 +67,11 @@ def post_message():
     db.session.add(message)
     db.session.commit()
     return_schema = PostedMessageSchema()
+
+    notifications_repo = NotificationsRepo(current_app.config['NOTIFICATIONS_REPO_CONF'])
+    use_case = use_cases.PublishNewMessageUseCase(notifications_repo)
+    use_case.publish(message)
+
     hub_url = current_app.config['HUB_URL']
     topic = use_cases.PublishStatusChangeUseCase.get_topic(message)
     headers = {
@@ -123,12 +128,18 @@ class SubscriptionsView(View):
         except marshmallow.ValidationError as e:  # TODO integrate marshmallow and libtrustbridge.errors.handlers
             return JsonResponse(e.messages, status=400)
 
+        topic = self.get_topic(form_data)
+        callback = form_data['callback']
+
         if form_data['mode'] == MODE_ATTR_SUBSCRIBE_VALUE:
-            self._subscribe(form_data['callback'], form_data['topic'], form_data['lease_seconds'])
+            self._subscribe(callback, topic, form_data['lease_seconds'])
         else:
-            self._unsubscribe(form_data['callback'], form_data['topic'])
+            self._unsubscribe(callback, topic)
 
         return Response(status=HTTPStatus.ACCEPTED)
+
+    def get_topic(self, form_data):
+        return form_data['topic']
 
     def _subscribe(self, callback, topic, lease_seconds):
         repo = self._get_repo()
@@ -147,4 +158,13 @@ class SubscriptionsView(View):
         return SubscriptionsRepo(current_app.config.get('SUBSCRIPTIONS_REPO_CONF'))
 
 
+class SubscriptionByJurisdiction(SubscriptionsView):
+    def get_topic(self, form_data):
+        return "jurisdiction.%s" % form_data['topic']
+
+
 blueprint.add_url_rule('/subscriptions', view_func=SubscriptionsView.as_view('subscriptions'))
+blueprint.add_url_rule(
+    '/subscriptions/by_jurisdiction',
+    view_func=SubscriptionByJurisdiction.as_view('subscriptions_by_jurisdiction')
+)

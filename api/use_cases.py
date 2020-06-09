@@ -51,10 +51,9 @@ class SubscriptionDeregisterUseCase:
         self.subscriptions_repo.bulk_delete([pattern.to_key(url)])
 
 
-class PublishStatusChangeUseCase:
+class PostNotificationUseCase:
     """
-    Given message status changed
-    message id should be sent for notification
+    Base use case to send message for notification
     """
 
     def __init__(self, notification_repo: repos.NotificationsRepo):
@@ -70,7 +69,29 @@ class PublishStatusChangeUseCase:
 
     @staticmethod
     def get_topic(message: models.Message):
+        raise NotImplementedError
+
+
+class PublishStatusChangeUseCase(PostNotificationUseCase):
+    """
+    Given message status changed
+    message id should be sent for notification
+    """
+
+    @staticmethod
+    def get_topic(message: models.Message):
         return f"message.{message.id}.status"
+
+
+class PublishNewMessageUseCase(PostNotificationUseCase):
+    """
+    Given new message,
+    message id should be posted for notification"""
+
+    @staticmethod
+    def get_topic(message: models.Message):
+        jurisdiction = message.payload['receiver']
+        return f"jurisdiction.{jurisdiction}"
 
 
 class DispatchMessageToSubscribersUseCase:
