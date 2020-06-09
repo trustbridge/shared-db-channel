@@ -17,22 +17,23 @@ def test_index_view(client):
 
 @pytest.mark.usefixtures("db_session", "client_class")
 class TestPostMessage:
+    message_data = {
+        "sender": "AU",
+        "receiver": "CN",
+        "subject": "AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX",
+        "obj": "QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n",
+        "predicate": "UN.CEFACT.Trade.CertificateOfOrigin.created"
+    }
+
     @freeze_time('2020-04-07 14:21:22.123456')
     def test_post_message__when_posted__should_create_message_in_db(self):
-        message_data = {
-            "sender": "AU",
-            "receiver": "CN",
-            "subject": "AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX",
-            "obj": "QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n",
-            "predicate": "UN.CEFACT.Trade.CertificateOfOrigin.created"
-        }
-        response = self.client.post(url_for('views.post_message'), json=message_data)
+        response = self.client.post(url_for('views.post_message'), json=self.message_data)
         assert response.status_code == 201
         assert response.json == {'id': 1}
 
         message = Message.query.order_by(Message.id.desc()).first()
         assert message.status == MessageStatus.CONFIRMED
-        assert message.payload == message_data
+        assert message.payload == self.message_data
         assert message.created_at == datetime(2020, 4, 7, 14, 21, 22, 123456)
 
     def test_post_message__when_missing_field__should_return_400(self):
@@ -45,6 +46,13 @@ class TestPostMessage:
             'sender': ['Missing data for required field.'],
             'subject': ['Missing data for required field.']
         }
+
+    def test_message__when_posted__should_return_websub_link_headers(self):
+        response = self.client.post(url_for('views.post_message'), json=self.message_data)
+        message_id = response.json['id']
+        assert 'Link' in response.headers
+        assert response.headers['Link'] == ('<http://localhost/subscriptions>; rel="hub", '
+                                            f'<message.{message_id}.status>; rel="self"')
 
 
 @pytest.mark.usefixtures("db_session", "client_class")

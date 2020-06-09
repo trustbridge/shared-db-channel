@@ -67,7 +67,12 @@ def post_message():
     db.session.add(message)
     db.session.commit()
     return_schema = PostedMessageSchema()
-    return JsonResponse(return_schema.dump(message), status=201)
+    hub_url = current_app.config['HUB_URL']
+    topic = use_cases.PublishStatusChangeUseCase.get_topic(message)
+    headers = {
+        'Link': f'<{hub_url}>; rel="hub", <{topic}>; rel="self"'
+    }
+    return JsonResponse(return_schema.dump(message), status=201, headers=headers)
 
 
 @blueprint.route('/messages/<id>')
@@ -142,4 +147,4 @@ class SubscriptionsView(View):
         return SubscriptionsRepo(current_app.config.get('SUBSCRIPTIONS_REPO_CONF'))
 
 
-blueprint.add_url_rule('/subscriptions/', view_func=SubscriptionsView.as_view('subscriptions'))
+blueprint.add_url_rule('/subscriptions', view_func=SubscriptionsView.as_view('subscriptions'))
