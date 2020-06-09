@@ -61,11 +61,16 @@ class PublishStatusChangeUseCase:
         self.notifications_repo = notification_repo
 
     def publish(self, message: models.Message):
+        topic = self.get_topic(message)
         job_payload = {
-            'topic': f"message.{message.id}.status",
+            'topic': topic,
             'content': {'id': message.id}
         }
         self.notifications_repo.post_job(job_payload)
+
+    @staticmethod
+    def get_topic(message: models.Message):
+        return f"message.{message.id}.status"
 
 
 class DispatchMessageToSubscribersUseCase:

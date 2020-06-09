@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, url_for
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -32,6 +32,7 @@ def create_app(config_object=None):
         migrate.init_app(app, db)
 
         register_specs(app)
+        app.config['HUB_URL'] = url_for('views.subscriptions')
     return app
 
 
