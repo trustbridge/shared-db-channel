@@ -84,8 +84,14 @@ An AU-SG channel can be run with:
    pie api.build
    pie api.upgrade_db_schema
 
-   # and start the API endpoint
+   # and start the AU API endpoint
    export/set COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
    pie api.build
    pie api.start
+   # http://localhost:8180
    # other tasks: stop, destroy, test, generate_swagger
+
+   # and start the SG API endpoint
+   export/set COMPOSE_PROJECT_NAME=au_sg_channel_sg_endpoint
+   pie api.start
+   # http://localhost:8181
