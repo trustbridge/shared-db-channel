@@ -89,6 +89,45 @@ class TestGetMessage:
         }
 
 
+@pytest.mark.usefixtures("client_class", )
+class TestUpdateMessageStatus:
+    @pytest.fixture(autouse=True)
+    def message(self, request, db_session):
+        self.db_session = db_session
+        self.message = Message(payload={"sender": "AU"})
+        self.db_session.add(self.message)
+        self.db_session.commit()
+
+    def test_put__with_new_status__should_update_status(self):
+        response = self.client.put(
+            url_for('views.update_message_status', id=self.message.id),
+            mimetype='application/x-www-form-urlencoded',
+            data=urlencode({'status': 'revoked'})
+        )
+        assert response.status_code == 200, response.json
+        assert response.json['status'] == 'revoked'
+
+        self.db_session.refresh(self.message)
+        assert self.message.status == MessageStatus.REVOKED
+
+    def test_put__with_wrong_status__should_return_400(self):
+        response = self.client.put(
+            url_for('views.update_message_status', id=self.message.id),
+            mimetype='application/x-www-form-urlencoded',
+            data=urlencode({'status': 'WRONG-STATUS'})
+        )
+        assert response.status_code == 400, response.json
+        assert response.json == {'status': ['Invalid enum value WRONG-STATUS']}
+
+    def test_put__when_missing_message__should_return_404(self):
+        response = self.client.put(
+            url_for('views.update_message_status', id=444),
+            mimetype='application/x-www-form-urlencoded',
+            data=urlencode({'status': 'revoked'})
+        )
+        assert response.status_code == 404, response.json
+
+
 @pytest.mark.usefixtures("client_class", "clean_subscriptions_repo")
 class TestSubscriptions:
     def test_post__with_subscribe_mode__should_subscribe(self):
