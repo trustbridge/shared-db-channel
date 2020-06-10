@@ -22,21 +22,30 @@ def INSTANCE_ENVIRONMENT():
 
 
 @task
-def build():
+def build(no_cache=False):
+    options=[]
+    if no_cache:
+        options.append('--no-cache')
     with INSTANCE_ENVIRONMENT():
-        DOCKER_COMPOSE.cmd('build')
+        DOCKER_COMPOSE.cmd('build', options=options)
 
 
 @task
 def start():
     with INSTANCE_ENVIRONMENT():
-        DOCKER_COMPOSE.cmd('up', options=['-d'])
+        DOCKER_COMPOSE.cmd('up', options=['-d','api'])
 
 
 @task
 def stop():
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.cmd('down')
+
+
+@task
+def restart():
+    stop()
+    start()
 
 
 @task
@@ -74,6 +83,11 @@ def show_env():
     COMPOSE_PROJECT_NAME=requires_compose_project_name()
     Docker().cmd('exec',[f'{COMPOSE_PROJECT_NAME}_api_1','env'])
     Docker().cmd('exec',[f'{COMPOSE_PROJECT_NAME}_api_1','pip list'])
+
+@task
+def bash():
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
+    Docker().cmd('exec',['-it',f'{COMPOSE_PROJECT_NAME}_api_1','bash'])
 
 
 # sub hub url

@@ -40,8 +40,6 @@ class DevelopmentConfig(BaseConfig):
     ENV = 'development'
     DEBUG = True
     LOCAL_DB = 'postgresql+psycopg2://dbchannel:dbchannel@127.0.0.1/dbchannel'
-    LOCAL_DB = 'blah'
-    print(environ.get('DATABASE_URI'))
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI', LOCAL_DB)
 
 
@@ -61,7 +59,6 @@ class TestingConfig(BaseConfig):
     }
 
     test_elastic = {
-        'elasticmq': {
             'use_ssl': False,
             'host': environ.get('TEST_ELASTICMQ_REPO_HOST'),
             'port': environ.get('TEST_ELASTICMQ_REPO_PORT'),
@@ -69,7 +66,6 @@ class TestingConfig(BaseConfig):
             'region': 'elasticmq',
             'access_key': 'x',
             'secret_key': 'x'
-        }
     }
     NOTIFICATIONS_REPO_CONF = test_elastic
 

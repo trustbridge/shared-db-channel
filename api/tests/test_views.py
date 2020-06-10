@@ -15,7 +15,7 @@ def test_index_view(client):
     assert response.json == {'service': 'shared-db-channel'}
 
 
-@pytest.mark.usefixtures("db_session", "client_class")
+@pytest.mark.usefixtures("db_session", "client_class", "clean_notifications_repo")
 class TestPostMessage:
     message_data = {
         "sender": "AU",
@@ -53,6 +53,11 @@ class TestPostMessage:
         assert 'Link' in response.headers
         assert response.headers['Link'] == ('<http://localhost/subscriptions>; rel="hub", '
                                             f'<message.{message_id}.status>; rel="self"')
+
+    def test_message__when_posted__should_publish_notification(self):
+        response = self.client.post(url_for('views.post_message'), json=self.message_data)
+        message_id = response.json['id']
+        assert self.notifications_repo.get_job()[1] == {'content': {'id': message_id}, 'topic': 'jurisdiction.CN'}
 
 
 @pytest.mark.usefixtures("db_session", "client_class")
@@ -130,3 +135,20 @@ class TestSubscriptions:
             'hub.mode': ['Missing data for required field.'],
             'hub.topic': ['Missing data for required field.'],
         }
+
+
+@pytest.mark.usefixtures("client_class", "clean_subscriptions_repo")
+class TestSubscriptionsByJurisdiction:
+    def test_post__with_subscribe_mode__should_subscribe_to_all_messages_by_jurisdiction(self):
+        params = {
+            'hub.mode': 'subscribe',
+            'hub.callback': 'https://callback.url/1',
+            'hub.topic': 'AU',
+        }
+        response = self.client.post(
+            url_for('views.subscriptions_by_jurisdiction'),
+            mimetype='application/x-www-form-urlencoded',
+            data=urlencode(params)
+        )
+        assert response.status_code == 202, response.json
+        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('jurisdiction.AU'))

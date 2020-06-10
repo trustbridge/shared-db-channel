@@ -1,6 +1,6 @@
 import pytest
 from freezegun import freeze_time
-from libtrustbridge.websub.repos import SubscriptionsRepo
+from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 
 from api.app import create_app, db
 from api.conf import TestingConfig
@@ -32,8 +32,18 @@ def message(db_session):
 @pytest.yield_fixture()
 def clean_subscriptions_repo(app, request):
     repo = SubscriptionsRepo(app.config['SUBSCRIPTIONS_REPO_CONF'])
-    assert repo._unsafe_is_empty_for_test()
+    repo._unsafe_method__clear()
     if request.cls is not None:
         request.cls.subscriptions_repo = repo
     yield repo
-    repo._unsafe_clear_for_test()
+    repo._unsafe_method__clear()
+
+
+@pytest.yield_fixture()
+def clean_notifications_repo(app, request):
+    repo = NotificationsRepo(app.config['NOTIFICATIONS_REPO_CONF'])
+    repo._unsafe_method__clear()
+    if request.cls is not None:
+        request.cls.notifications_repo = repo
+    yield repo
+    repo._unsafe_method__clear()
