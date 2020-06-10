@@ -667,16 +667,32 @@ def parseArguments(args):
                 i += 1
             else:
                 raise Exception('Unknown argument: {}'.format(arg))
+            i+=1
         else:
             mo = TASK_RE.match(arg)
             if mo:
                 taskArgs = mo.group('args')
                 taskArgs = taskArgs.split(',') if taskArgs else []
+                taskKwArgs={}
+                # and consume following -- args
+                i+=1
+                while i<len(args):
+                    arg=args[i]
+                    # kwargs must start with --
+                    if not arg.startswith('--'): break
+                    arg=arg[2:]
+                    if '=' in arg:
+                        name,value=arg.split('=')
+                    else:
+                        name=arg
+                        value=True
+                    name=name.replace('-','_')
+                    taskKwArgs[name]=value
+                    i+=1
                 # TODO: add further parsing to handle keyword arguments
-                parsed.append(TaskCall(mo.group('name'), args=taskArgs, kwargs={}))
+                parsed.append(TaskCall(mo.group('name'), args=taskArgs, kwargs=taskKwArgs))
             else:
                 raise Exception('Unknown task format: {}'.format(arg))
-        i += 1
     return parsed
 
 

@@ -21,4 +21,4 @@ responses==0.10.14
 # AWS Integration
 boto3==1.13.12
 
-git+https://github.com/trustbridge/libtrustbridge@c7caef3a#egg=libtrustbridge
+git+https://github.com/trustbridge/libtrustbridge#egg=libtrustbridge
