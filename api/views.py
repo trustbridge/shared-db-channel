@@ -16,7 +16,7 @@ from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 from libtrustbridge.websub.schemas import SubscriptionForm
 
 from api.models import Message, db
-from api.schemas import MessagePayloadSchema, PostedMessageSchema, MessageSchema, dump_only_fields
+from api.schemas import MessagePayloadSchema, PostedMessageSchema, MessageSchema, StatusUpdateSchema, dump_only_fields
 from api import use_cases
 
 blueprint = Blueprint('views', __name__)
@@ -116,6 +116,24 @@ def get_message(id, fields=None):
 
     data = return_schema.dump(message)
     return JsonResponse(dump_only_fields(data, fields))
+
+
+@blueprint.route('/messages/<id>/status', methods=['PUT'])
+def update_message_status(id):
+    """Update message status"""
+    message = db.session.query(Message).get(id)
+    if not message:
+        return Response(status=404)
+
+    data = request.form.to_dict()
+    schema = StatusUpdateSchema()
+    try:
+        schema.load(data, instance=message, partial=True)
+    except marshmallow.ValidationError as e:
+        return JsonResponse(e.messages, status=400)
+
+    db.session.commit()
+    return JsonResponse(MessageSchema().dump(message))
 
 
 class SubscriptionsView(View):
