@@ -1,7 +1,9 @@
 from datetime import datetime
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import pytest
+import responses
 from flask import url_for
 from freezegun import freeze_time
 from libtrustbridge.websub.domain import Pattern
@@ -51,8 +53,8 @@ class TestPostMessage:
         response = self.client.post(url_for('views.post_message'), json=self.message_data)
         message_id = response.json['id']
         assert 'Link' in response.headers
-        assert response.headers['Link'] == ('<http://localhost/subscriptions>; rel="hub", '
-                                            f'<message.{message_id}.status>; rel="self"')
+        assert response.headers['Link'] == ('<http://localhost/messages/subscriptions/by_id>; rel="hub", '
+                                            f'<{message_id}>; rel="self"')
 
     def test_message__when_posted__should_publish_notification(self):
         response = self.client.post(url_for('views.post_message'), json=self.message_data)
@@ -128,46 +130,55 @@ class TestUpdateMessageStatus:
         assert response.status_code == 404, response.json
 
 
-@pytest.mark.usefixtures("client_class", "clean_subscriptions_repo")
+@pytest.mark.usefixtures("client_class", "clean_subscriptions_repo", "mocked_responses")
 class TestSubscriptions:
+    MOCKED_UUID_VALUE = 'UUID'
+
+    @patch('uuid.uuid4', return_value=MOCKED_UUID_VALUE)
+    def do_subscribe_by_id_request(self, params, uuid_mock):
+        return self.client.post(
+            url_for('views.subscriptions_by_id'),
+            mimetype='application/x-www-form-urlencoded',
+            data=urlencode(params)
+        )
+
     def test_post__with_subscribe_mode__should_subscribe(self):
         params = {
             'hub.mode': 'subscribe',
             'hub.callback': 'https://callback.url/1',
-            'hub.topic': 'aa.bb.cc',
+            'hub.topic': 'id',
         }
-        response = self.client.post(
-            url_for('views.subscriptions'),
-            mimetype='application/x-www-form-urlencoded',
-            data=urlencode(params)
+        self.mocked_responses.add(
+            responses.GET,
+            'https://callback.url/1?hub.mode=subscribe&hub.topic=id&hub.challenge=UUID&hub.lease_seconds=432000',
+            body=self.MOCKED_UUID_VALUE
         )
+        response = self.do_subscribe_by_id_request(params)
         assert response.status_code == 202, response.json
-        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
+        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('id'))
 
     def test_post__with_unsubscribe_mode__should_unsubscribe(self):
-        self.subscriptions_repo.subscribe_by_pattern(Pattern('aa.bb.cc'), 'https://callback.url/1', 30)
-        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
+        self.subscriptions_repo.subscribe_by_pattern(Pattern('id'), 'https://callback.url/1', 30)
+        assert self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('id'))
+
+        self.mocked_responses.add(
+            responses.GET,
+            'https://callback.url/1?hub.mode=unsubscribe&hub.topic=id&hub.challenge=UUID&hub.lease_seconds=432000',
+            body=self.MOCKED_UUID_VALUE
+        )
 
         params = {
             'hub.mode': 'unsubscribe',
             'hub.callback': 'https://callback.url/1',
-            'hub.topic': 'aa.bb.cc',
+            'hub.topic': 'id',
         }
-        response = self.client.post(
-            url_for('views.subscriptions'),
-            mimetype='application/x-www-form-urlencoded',
-            data=urlencode(params)
-        )
+        response = self.do_subscribe_by_id_request(params)
         assert response.status_code == 202, response.json
-        assert not self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('aa.bb.cc'))
+        assert not self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('message.id.status'))
 
     def test_post_with_wrong_params__should_return_error(self):
         params = {}
-        response = self.client.post(
-            url_for('views.subscriptions'),
-            mimetype='application/x-www-form-urlencoded',
-            data=urlencode(params)
-        )
+        response = self.do_subscribe_by_id_request(params)
         assert response.status_code == 400, response.json
         assert response.json == {
             'hub.callback': ['Missing data for required field.'],
@@ -175,10 +186,46 @@ class TestSubscriptions:
             'hub.topic': ['Missing data for required field.'],
         }
 
+    def test_post_when_verification_of_intent_return_non_200__should_fail(self):
+        self.mocked_responses.add(
+            responses.GET,
+            'https://callback.url/1?hub.mode=subscribe&hub.topic=id&hub.challenge=UUID&hub.lease_seconds=432000',
+            status=400,
+            body=self.MOCKED_UUID_VALUE
+        )
+        params = {
+            'hub.mode': 'subscribe',
+            'hub.callback': 'https://callback.url/1',
+            'hub.topic': 'id',
+        }
+        response = self.do_subscribe_by_id_request(params)
+        assert response.status_code == 400
+        assert response.json == {'error': 'Intent verification failed'}
 
-@pytest.mark.usefixtures("client_class", "clean_subscriptions_repo")
-class TestSubscriptionsByJurisdiction:
-    def test_post__with_subscribe_mode__should_subscribe_to_all_messages_by_jurisdiction(self):
+    def test_post_when_verification_of_intent_return_wrong_challenge__should_fail(self):
+        self.mocked_responses.add(
+            responses.GET,
+            'https://callback.url/1?hub.mode=subscribe&hub.topic=id&hub.challenge=UUID&hub.lease_seconds=432000',
+            status=200,
+            body=b'WRONG_UUID'
+        )
+        params = {
+            'hub.mode': 'subscribe',
+            'hub.callback': 'https://callback.url/1',
+            'hub.topic': 'id',
+        }
+        response = self.do_subscribe_by_id_request(params)
+        assert response.status_code == 400
+        assert response.json == {'error': 'Intent verification failed'}
+
+    @patch('uuid.uuid4', return_value=MOCKED_UUID_VALUE)
+    def test_post__with_subscribe_mode__should_subscribe_to_all_messages_by_jurisdiction(self, mocked_uuid):
+        self.mocked_responses.add(
+            responses.GET,
+            'https://callback.url/1?hub.mode=subscribe&hub.topic=jurisdiction.AU&hub.challenge=UUID&hub.lease_seconds=432000',
+            status=200,
+            body=self.MOCKED_UUID_VALUE
+        )
         params = {
             'hub.mode': 'subscribe',
             'hub.callback': 'https://callback.url/1',

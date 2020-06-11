@@ -1,23 +1,23 @@
 import json
-import marshmallow
+import uuid
 from http import HTTPStatus
 
+import marshmallow
+import requests
 from flask import Blueprint, Response, request
 from flask import current_app
 from flask.views import View
-
-from webargs import fields
-from webargs.flaskparser import use_kwargs
-
 from libtrustbridge.utils.routing import mimetype
 from libtrustbridge.websub.constants import MODE_ATTR_SUBSCRIBE_VALUE
 from libtrustbridge.websub.exceptions import SubscriptionNotFoundError
 from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 from libtrustbridge.websub.schemas import SubscriptionForm
+from webargs import fields
+from webargs.flaskparser import use_kwargs
 
+from api import use_cases
 from api.models import Message, db
 from api.schemas import MessagePayloadSchema, PostedMessageSchema, MessageSchema, StatusUpdateSchema, dump_only_fields
-from api import use_cases
 
 blueprint = Blueprint('views', __name__)
 
@@ -136,7 +136,11 @@ def update_message_status(id):
     return JsonResponse(MessageSchema().dump(message))
 
 
-class SubscriptionsView(View):
+class IntentVerificationFailure(Exception):
+    pass
+
+
+class BaseSubscriptionsView(View):
     methods = ['POST']
 
     @mimetype(include=['application/x-www-form-urlencoded'])
@@ -144,17 +148,24 @@ class SubscriptionsView(View):
         try:
             form_data = SubscriptionForm().load(request.form.to_dict())
         except marshmallow.ValidationError as e:  # TODO integrate marshmallow and libtrustbridge.errors.handlers
-            return JsonResponse(e.messages, status=400)
+            return JsonResponse(e.messages, status=HTTPStatus.BAD_REQUEST)
 
         topic = self.get_topic(form_data)
         callback = form_data['callback']
+        mode = form_data['mode']
+        lease_seconds = form_data['lease_seconds']
 
-        if form_data['mode'] == MODE_ATTR_SUBSCRIBE_VALUE:
-            self._subscribe(callback, topic, form_data['lease_seconds'])
+        try:
+            self.verify(callback, mode, topic, lease_seconds)
+        except IntentVerificationFailure:
+            return JsonResponse({'error': 'Intent verification failed'}, status=HTTPStatus.BAD_REQUEST)
+
+        if mode == MODE_ATTR_SUBSCRIBE_VALUE:
+            self._subscribe(callback, topic, lease_seconds)
         else:
             self._unsubscribe(callback, topic)
 
-        return Response(status=HTTPStatus.ACCEPTED)
+        return JsonResponse(status=HTTPStatus.ACCEPTED)
 
     def get_topic(self, form_data):
         return form_data['topic']
@@ -175,14 +186,35 @@ class SubscriptionsView(View):
     def _get_repo(self):
         return SubscriptionsRepo(current_app.config.get('SUBSCRIPTIONS_REPO_CONF'))
 
+    def verify(self, callback_url, mode, topic, lease_seconds):
+        challenge = str(uuid.uuid4())
+        params = {
+            'hub.mode': mode,
+            'hub.topic': topic,
+            'hub.challenge': challenge,
+            'hub.lease_seconds': lease_seconds
+        }
+        response = requests.get(callback_url, params)
+        if response.status_code == 200 and response.text == challenge:
+            return
 
-class SubscriptionByJurisdiction(SubscriptionsView):
+        raise IntentVerificationFailure()
+
+
+class SubscriptionById(BaseSubscriptionsView):
+    pass
+
+
+class SubscriptionByJurisdiction(BaseSubscriptionsView):
     def get_topic(self, form_data):
         return "jurisdiction.%s" % form_data['topic']
 
 
-blueprint.add_url_rule('/subscriptions', view_func=SubscriptionsView.as_view('subscriptions'))
 blueprint.add_url_rule(
-    '/subscriptions/by_jurisdiction',
+    '/messages/subscriptions/by_jurisdiction',
     view_func=SubscriptionByJurisdiction.as_view('subscriptions_by_jurisdiction')
+)
+blueprint.add_url_rule(
+    '/messages/subscriptions/by_id',
+    view_func=SubscriptionById.as_view('subscriptions_by_id')
 )

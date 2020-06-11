@@ -1,4 +1,5 @@
 import pytest
+import responses
 from freezegun import freeze_time
 from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 
@@ -7,12 +8,12 @@ from api.conf import TestingConfig
 from api.models import Message
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 def app():
     yield create_app(TestingConfig())
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 def _db(app):
     db.app = app
     db.create_all()
@@ -29,7 +30,7 @@ def message(db_session):
     return message
 
 
-@pytest.yield_fixture()
+@pytest.fixture
 def clean_subscriptions_repo(app, request):
     repo = SubscriptionsRepo(app.config['SUBSCRIPTIONS_REPO_CONF'])
     repo._unsafe_method__clear()
@@ -39,7 +40,7 @@ def clean_subscriptions_repo(app, request):
     repo._unsafe_method__clear()
 
 
-@pytest.yield_fixture()
+@pytest.fixture
 def clean_notifications_repo(app, request):
     repo = NotificationsRepo(app.config['NOTIFICATIONS_REPO_CONF'])
     repo._unsafe_method__clear()
@@ -47,3 +48,11 @@ def clean_notifications_repo(app, request):
         request.cls.notifications_repo = repo
     yield repo
     repo._unsafe_method__clear()
+
+
+@pytest.fixture
+def mocked_responses(request):
+    with responses.RequestsMock() as rsps:
+        if request.cls is not None:
+            request.cls.mocked_responses = rsps
+        yield rsps

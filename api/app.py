@@ -32,7 +32,7 @@ def create_app(config_object=None):
         migrate.init_app(app, db)
 
         register_specs(app)
-        app.config['HUB_URL'] = url_for('views.subscriptions')
+        app.config['HUB_URL'] = url_for('views.subscriptions_by_id')
     return app
 
 
