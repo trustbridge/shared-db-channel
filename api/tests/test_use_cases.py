@@ -18,7 +18,7 @@ class TestPublishStatusChangeUseCase:
         PublishStatusChangeUseCase(notifications_repo).publish(message=message)
 
         notifications_repo.post_job.assert_called_once_with({
-            'topic': 'message.24.status',
+            'topic': '24',
             'content': {
                 'id': 24
             }

@@ -80,7 +80,7 @@ class PublishStatusChangeUseCase(PostNotificationUseCase):
 
     @staticmethod
     def get_topic(message: models.Message):
-        return f"message.{message.id}.status"
+        return f"{message.id}"
 
 
 class PublishNewMessageUseCase(PostNotificationUseCase):
