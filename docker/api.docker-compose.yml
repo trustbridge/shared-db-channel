@@ -23,41 +23,41 @@ services:
       MINIO_HTTP_TRACE: /minio-data/requests.log
     # we don't have to expose it directly to the host machine for our demo,
     # but it's useful for starting service on the host
-    ports: ['${HOST_BIND_MINIO_PORT:-9001}:9000']
+    ports: ['${MINIO_BIND_HOST_PORT}:9000']
     restart: on-failure
     volumes:
       - ./var/minio-data:/minio-data
 
   elasticmq:
     image: softwaremill/elasticmq
-    ports: ['${HOST_BIND_ELASTICMQ_PORT:-9325}:9324']
+    ports: ['${ELASTICMQ_BIND_HOST_PORT}:9324']
     volumes: ['./elasticmq.conf:/opt/elasticmq.conf']
     restart: on-failure
 
 
   api:
     <<: *base-api
-    ports: ['$API_PORT:5000']
+    ports: ['$API_BIND_HOST_PORT:5000']
     environment:
-      SERVER_NAME: localhost:${API_PORT}
-      DATABASE_URI: ${DATABASE_URI}
-      IGL_SUBSCRIPTIONS_REPO_USE_SSL: 'False'
-      IGL_SUBSCRIPTIONS_REPO_HOST: minio
-      IGL_SUBSCRIPTIONS_REPO_PORT: 9000
-      IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY: minio_access_key
-      IGL_SUBSCRIPTIONS_REPO_SECRET_KEY: minio_secret_key
-      IGL_NOTIFICATIONS_REPO_USE_SSL: 'False'
-      IGL_NOTIFICATIONS_REPO_REGION: elasticmq
-      IGL_NOTIFICATIONS_REPO_HOST: elasticmq
-      IGL_NOTIFICATIONS_REPO_PORT: 9324
-      IGL_NOTIFICATIONS_REPO_ACCESS_KEY: elasticmqaccess
-      IGL_NOTIFICATIONS_REPO_SECRET_KEY: elasticmqsecret
-      IGL_DELIVERY_OUTBOX_REPO_USE_SSL: 'False'
-      IGL_DELIVERY_OUTBOX_REPO_REGION: elasticmq
-      IGL_DELIVERY_OUTBOX_REPO_HOST: elasticmq
-      IGL_DELIVERY_OUTBOX_REPO_PORT: 9324
-      IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY: elasticmqaccess
-      IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY: elasticmqsecret
+      - SERVER_NAME
+      - DATABASE_URI
+      - IGL_SUBSCRIPTIONS_REPO_HOST
+      - IGL_SUBSCRIPTIONS_REPO_PORT
+      - IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY
+      - IGL_SUBSCRIPTIONS_REPO_SECRET_KEY
+      - IGL_SUBSCRIPTIONS_REPO_USE_SSL
+      - IGL_NOTIFICATIONS_REPO_HOST
+      - IGL_NOTIFICATIONS_REPO_PORT
+      - IGL_NOTIFICATIONS_REPO_REGION
+      - IGL_NOTIFICATIONS_REPO_ACCESS_KEY
+      - IGL_NOTIFICATIONS_REPO_SECRET_KEY
+      - IGL_NOTIFICATIONS_REPO_USE_SSL
+      - IGL_DELIVERY_OUTBOX_REPO_HOST
+      - IGL_DELIVERY_OUTBOX_REPO_PORT
+      - IGL_DELIVERY_OUTBOX_REPO_REGION
+      - IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY
+      - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY
+      - IGL_DELIVERY_OUTBOX_REPO_USE_SSL
     #./scripts/wait-for-it.sh $DB_HOST:$CONN_DB_PORT &&
     #command: bash -c "pwd && ls -al"
     command: bash -c "./scripts/runserver.sh"
@@ -68,8 +68,6 @@ services:
     command: bash -c "cd /src && pytest -o junit_family=xunit1 --junitxml=/src/api/tests/results.xml"
     environment:
       TESTING: 'True'
-      IGL_ALLOW_UNSAFE_REPO_IS_EMPTY: 'True'
-      IGL_ALLOW_UNSAFE_REPO_CLEAR: 'True'
       TEST_SUBSCRIPTIONS_REPO_HOST: ${TEST_SUBSCRIPTION_REPO_HOST:-minio}
       TEST_SUBSCRIPTIONS_REPO_PORT: ${TEST_SUBSCRIPTION_REPO_PORT:-9000}
       TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio_access_key}

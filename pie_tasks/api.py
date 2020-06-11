@@ -74,6 +74,12 @@ def upgrade_db_schema():
 
 
 @task
+def docker_compose_config():
+    with INSTANCE_ENVIRONMENT():
+        DOCKER_COMPOSE.cmd('config')
+
+
+@task
 def logs():
     COMPOSE_PROJECT_NAME=requires_compose_project_name()
     Docker().cmd('logs',[f'{COMPOSE_PROJECT_NAME}_api_1'])
@@ -88,8 +94,3 @@ def show_env():
 def bash():
     COMPOSE_PROJECT_NAME=requires_compose_project_name()
     Docker().cmd('exec',['-it',f'{COMPOSE_PROJECT_NAME}_api_1','bash'])
-
-
-# sub hub url
-# channel endpoint endpoint for changing statuses
-# observer of other messages
