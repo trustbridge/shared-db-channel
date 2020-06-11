@@ -76,7 +76,7 @@ def upgrade_db_schema():
 @task
 def logs():
     COMPOSE_PROJECT_NAME=requires_compose_project_name()
-    Docker().cmd('logs',['au_sg_channel_au_endpoint_api_1'])
+    Docker().cmd('logs',[f'{COMPOSE_PROJECT_NAME}_api_1'])
 
 @task
 def show_env():
