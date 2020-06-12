@@ -66,10 +66,12 @@ pipeline {
                             checkout scm
 
                             sh '''#!/bin/bash
+                                echo Starting Shared DB
                                 export COMPOSE_PROJECT_NAME=au_sg_channel
                                 python3 pie.py shared_db.destroy
                                 python3 pie.py shared_db.start
                                 
+                                echo Starting API
                                 export COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
                                 python3 pie.py api.build
                                 python3 pie.py api.upgrade_db_schema
@@ -84,8 +86,6 @@ pipeline {
                         dir("${env.DOCKER_BUILD_DIR}/test/shared-db-channel/")  {
                             sh '''#!/bin/bash
                                 export COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
-                                export IGL_ALLOW_UNSAFE_REPO_CLEAR=True
-                                export IGL_ALLOW_UNSAFE_REPO_IS_EMPTY=True
                                 python3 pie.py api.test
                             '''
                         }
