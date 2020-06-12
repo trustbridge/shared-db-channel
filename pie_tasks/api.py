@@ -32,8 +32,11 @@ def build(no_cache=False):
 
 @task
 def start():
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.cmd('up', options=['-d','api'])
+        DOCKER_COMPOSE.service('api').cmd('run', options=['-d',f'--name api_{COMPOSE_PROJECT_NAME}_callback_spreader'], container_cmd='python ./manage.py run_callback_spreader')
+        DOCKER_COMPOSE.service('api').cmd('run', options=['-d',f'--name api_{COMPOSE_PROJECT_NAME}_callback_delivery'], container_cmd='python ./manage.py run_callback_delivery')
 
 
 @task
@@ -51,7 +54,7 @@ def restart():
 @task
 def destroy():
     with INSTANCE_ENVIRONMENT():
-        DOCKER_COMPOSE.cmd('down', options=['-v', '--rmi all'])
+        DOCKER_COMPOSE.cmd('down', options=['-v', '--rmi local'])
 
 
 @task
