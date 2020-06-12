@@ -5,5 +5,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /src
 
-COPY ./requirements.txt .
+COPY ./ .
 RUN pip install -r requirements.txt
