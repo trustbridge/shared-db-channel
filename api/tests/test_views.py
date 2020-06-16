@@ -59,11 +59,8 @@ class TestPostMessage:
     def test_message__when_posted__should_publish_notification(self):
         response = self.client.post(url_for('views.post_message'), json=self.message_data)
         message_id = response.json['id']
-        jurisdiction_notification = self.notifications_repo.get_job()
         message_update_notification = self.notifications_repo.get_job()
 
-        assert jurisdiction_notification
-        assert jurisdiction_notification[1] == {'content': {'id': message_id}, 'topic': 'jurisdiction.CN'}
         assert message_update_notification
         assert message_update_notification[1] == {'content': {'id': message_id}, 'topic': str(message_id)}
 
