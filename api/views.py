@@ -69,8 +69,12 @@ def post_message():
     return_schema = PostedMessageSchema()
 
     notifications_repo = NotificationsRepo(current_app.config['NOTIFICATIONS_REPO_CONF'])
-    use_case = use_cases.PublishNewMessageUseCase(notifications_repo)
-    use_case.publish(message)
+    use_cases_list = [
+        use_cases.PublishNewMessageUseCase(notifications_repo),
+        use_cases.PublishStatusChangeUseCase(notifications_repo),
+    ]
+    for use_case in use_cases_list:
+        use_case.publish(message)
 
     hub_url = current_app.config['HUB_URL']
     topic = use_cases.PublishStatusChangeUseCase.get_topic(message)
