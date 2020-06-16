@@ -132,6 +132,10 @@ def update_message_status(id):
     except marshmallow.ValidationError as e:
         return JsonResponse(e.messages, status=400)
 
+    notifications_repo = NotificationsRepo(current_app.config['NOTIFICATIONS_REPO_CONF'])
+    use_case = use_cases.PublishStatusChangeUseCase(notifications_repo)
+    use_case.publish(message)
+
     db.session.commit()
     return JsonResponse(MessageSchema().dump(message))
 
