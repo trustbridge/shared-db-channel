@@ -1,13 +1,81 @@
 import random
+from datetime import datetime
 from unittest import mock, TestCase
 
+import pytest
 import responses
+from freezegun import freeze_time
 from libtrustbridge.websub.repos import NotificationsRepo, DeliveryOutboxRepo, SubscriptionsRepo
 
 from api.models import Message, MessageStatus
 from api.use_cases import (
-    PublishStatusChangeUseCase, DispatchMessageToSubscribersUseCase, DeliverCallbackUseCase
+    PublishStatusChangeUseCase, DispatchMessageToSubscribersUseCase, DeliverCallbackUseCase, NewMessagesNotifyUseCase
 )
+
+
+class TestGetNewMessagesUseCase:
+    @pytest.fixture(autouse=True)
+    def message(self, request, db_session, clean_channel_repo, clean_notifications_repo):
+        self.db_session = db_session
+        self.message = Message(payload={"receiver": "AU"})
+        with freeze_time('2020-06-17 12:04:01.111111'):
+            messages = [
+                self.message,
+                Message(payload={"receiver": "AU"}),
+                Message(payload={"receiver": "SG"}),
+            ]
+            for m in messages:
+                self.db_session.add(m)
+
+            self.db_session.commit()
+
+        with freeze_time('2020-06-17 12:04:03.111111'):
+            messages = [
+                Message(payload={"receiver": "SG"}),
+            ]
+            for m in messages:
+                self.db_session.add(m)
+
+            self.message.status = MessageStatus.REVOKED
+            self.db_session.commit()
+
+        self.channel_repo = clean_channel_repo
+        self.notifications_repo = clean_notifications_repo
+        self.use_case = NewMessagesNotifyUseCase('AU', clean_channel_repo, clean_notifications_repo)
+
+    def test_get_new_messages__when_available__should_return_them(self):
+        now = datetime(2020, 6, 17, 12, 4, 1, 222222)
+        messages = self.use_case.get_new_messages(receiver='AU', since=now)
+        assert len(messages) == 1
+        assert messages[0].updated_at >= now
+        assert messages[0].id == self.message.id
+
+    def test_set_last_updated__should_set_timestamp_into_channel_repo(self):
+        updated_at = datetime(2020, 6, 17, 11, 34, 56, 123456)
+        self.use_case.set_last_updated_at(updated_at)
+        assert self.use_case.get_last_updated_at() == updated_at
+        assert self.channel_repo.get_object_content('updated_at') == b'2020-06-17T11:34:56.123456'
+
+    def test_get_last_updated_at__when_not_available__should_return_none(self):
+        assert self.use_case.get_last_updated_at() is None
+
+    def test_execute__for_each_new_message__should_publish_notification(self):
+        now = datetime(2020, 6, 17, 12, 4, 1, 222222)
+        self.use_case.set_last_updated_at(now)
+        self.use_case.execute()
+        notification = self.notifications_repo.get_job()
+        assert notification and notification[1] == {'content': {'id': 1}, 'topic': 'jurisdiction.AU'}
+        assert not self.notifications_repo.get_job()
+
+    def test_execute__when_no_last_updated_at__should_use_now(self):
+        with mock.patch('api.use_cases.datetime') as mocked_datetime:
+            mocked_datetime.utcnow.return_value = datetime(2020, 6, 17, 12, 1, 1, 222222)
+            self.use_case.execute()
+        notification = self.notifications_repo.get_job()
+        notification2 = self.notifications_repo.get_job()
+        assert notification and notification[1] == {'content': {'id': 1}, 'topic': 'jurisdiction.AU'}
+        assert notification2 and notification2[1] == {'content': {'id': 2}, 'topic': 'jurisdiction.AU'}
+        assert not self.notifications_repo.get_job()
 
 
 class TestPublishStatusChangeUseCase:

@@ -13,6 +13,9 @@ class MessageStatus(enum.Enum):
 
 class Message(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.utcnow())
+    updated_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow()
+    )
     status = db.Column(
         db.Enum(MessageStatus, values_callable=lambda enum: [e.value for e in enum], native_enum=False),
         default=MessageStatus.CONFIRMED)

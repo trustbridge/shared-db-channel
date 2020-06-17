@@ -11,6 +11,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     TESTING = False
     SERVICE_NAME = 'shared-db-channel'
     SERVER_NAME = 'localhost'
+    ENDPOINT = 'AU'
     LOG_FORMATTER_JSON = False
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -22,6 +23,8 @@ class BaseConfig(metaclass=MetaFlaskEnv):
             self.NOTIFICATIONS_REPO_CONF = env_queue_config('NOTIFICATIONS_REPO')
         if not hasattr(self, 'DELIVERY_OUTBOX_REPO_CONF'):
             self.DELIVERY_OUTBOX_REPO_CONF = env_queue_config('DELIVERY_OUTBOX_REPO')
+        if not hasattr(self, 'CHANNEL_REPO_CONF'):
+            self.CHANNEL_REPO_CONF = env_queue_config('CHANNEL_REPO')
 
 
 class ProductionConfig(BaseConfig):
@@ -47,16 +50,19 @@ class TestingConfig(BaseConfig):
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    ENDPOINT = 'AU'
     SERVER_NAME = 'localhost'
-    SUBSCRIPTIONS_REPO_CONF = {
+    test_minio = {
         'use_ssl': False,
-        'host': environ.get('TEST_SUBSCRIPTIONS_REPO_HOST'),
-        'port': environ.get('TEST_SUBSCRIPTIONS_REPO_PORT'),
+        'host': environ.get('TEST_MINIO_HOST'),
+        'port': environ.get('TEST_MINIO_PORT'),
         'bucket': 'default',
         'region': 'test_region',
-        'access_key': environ.get('TEST_SUBSCRIPTIONS_REPO_ACCESS_KEY'),
-        'secret_key': environ.get('TEST_SUBSCRIPTIONS_REPO_SECRET_KEY')
+        'access_key': environ.get('TEST_MINIO_ACCESS_KEY'),
+        'secret_key': environ.get('TEST_MINIO_SECRET_KEY')
     }
+    SUBSCRIPTIONS_REPO_CONF = test_minio
+    CHANNEL_REPO_CONF = test_minio
 
     test_elastic = {
             'use_ssl': False,
@@ -67,6 +73,9 @@ class TestingConfig(BaseConfig):
             'access_key': 'x',
             'secret_key': 'x'
     }
-    NOTIFICATIONS_REPO_CONF = test_elastic
 
-    DELIVERY_OUTBOX_REPO_CONF = test_elastic
+    NOTIFICATIONS_REPO_CONF = test_elastic.copy()
+    NOTIFICATIONS_REPO_CONF['queue_name'] = 'test-notifications'
+
+    DELIVERY_OUTBOX_REPO_CONF = test_elastic.copy()
+    DELIVERY_OUTBOX_REPO_CONF['queue_name'] = 'test-delivery-outbox'

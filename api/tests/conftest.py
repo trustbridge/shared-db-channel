@@ -6,6 +6,7 @@ from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 from api.app import create_app, db
 from api.conf import TestingConfig
 from api.models import Message
+from api.repos import ChannelRepo
 
 
 @pytest.fixture(scope='session')
@@ -46,6 +47,16 @@ def clean_notifications_repo(app, request):
     repo._unsafe_method__clear()
     if request.cls is not None:
         request.cls.notifications_repo = repo
+    yield repo
+    repo._unsafe_method__clear()
+
+
+@pytest.fixture
+def clean_channel_repo(app, request):
+    repo = ChannelRepo(app.config['CHANNEL_REPO_CONF'])
+    repo._unsafe_method__clear()
+    if request.cls is not None:
+        request.cls.channel_repo = repo
     yield repo
     repo._unsafe_method__clear()
 
