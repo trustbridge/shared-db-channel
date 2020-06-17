@@ -59,7 +59,10 @@ class TestPostMessage:
     def test_message__when_posted__should_publish_notification(self):
         response = self.client.post(url_for('views.post_message'), json=self.message_data)
         message_id = response.json['id']
-        assert self.notifications_repo.get_job()[1] == {'content': {'id': message_id}, 'topic': 'jurisdiction.CN'}
+        message_update_notification = self.notifications_repo.get_job()
+
+        assert message_update_notification
+        assert message_update_notification[1] == {'content': {'id': message_id}, 'topic': str(message_id)}
 
 
 @pytest.mark.usefixtures("db_session", "client_class")
@@ -91,7 +94,7 @@ class TestGetMessage:
         }
 
 
-@pytest.mark.usefixtures("client_class", )
+@pytest.mark.usefixtures("client_class", 'clean_notifications_repo')
 class TestUpdateMessageStatus:
     @pytest.fixture(autouse=True)
     def message(self, request, db_session):
@@ -100,7 +103,7 @@ class TestUpdateMessageStatus:
         self.db_session.add(self.message)
         self.db_session.commit()
 
-    def test_put__with_new_status__should_update_status(self):
+    def test_put__with_new_status__should_update_status_and_send_notification(self):
         response = self.client.put(
             url_for('views.update_message_status', id=self.message.id),
             mimetype='application/x-www-form-urlencoded',
@@ -111,6 +114,9 @@ class TestUpdateMessageStatus:
 
         self.db_session.refresh(self.message)
         assert self.message.status == MessageStatus.REVOKED
+        assert self.notifications_repo.get_job()[1] == {
+            'content': {'id': self.message.id}, 'topic': str(self.message.id)
+        }
 
     def test_put__with_wrong_status__should_return_400(self):
         response = self.client.put(
@@ -174,7 +180,7 @@ class TestSubscriptions:
         }
         response = self.do_subscribe_by_id_request(params)
         assert response.status_code == 202, response.json
-        assert not self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('message.id.status'))
+        assert not self.subscriptions_repo.get_subscriptions_by_pattern(Pattern('id'))
 
     def test_post_with_wrong_params__should_return_error(self):
         params = {}
