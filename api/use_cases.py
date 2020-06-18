@@ -1,13 +1,65 @@
 import logging
 import random
+from datetime import datetime
 
 import requests
+from libtrustbridge.repos.miniorepo import MinioRepo
 from libtrustbridge.websub import repos
 from libtrustbridge.websub.domain import Pattern
+from botocore.exceptions import ClientError
 
 from api import models
+from api.app import db
 
 logger = logging.getLogger(__name__)
+
+
+class NewMessagesNotifyUseCase:
+    """
+    Query shared database in order to receive new messages directed
+    to the endpoint and send notification for each message.
+    """
+    TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+
+    def __init__(self, receiver, channel_repo: MinioRepo, notifications_repo: repos.NotificationsRepo):
+        self.channel_repo = channel_repo
+        self.notifications_repo = notifications_repo
+        self.receiver = receiver
+
+    def execute(self):
+        since = self.get_last_updated_at()
+        if not since:
+            logger.warning("No last updated_at, using now")
+            since = datetime.utcnow()
+            self.set_last_updated_at(since)
+
+        messages = self.get_new_messages(receiver=self.receiver, since=since)
+        use_case = PublishNewMessageUseCase(self.notifications_repo)
+        for message in messages:
+            # TODO error handling to be implemented
+            use_case.publish(message)
+            self.set_last_updated_at(message.updated_at)
+
+    def set_last_updated_at(self, updated_at: datetime):
+        updated_at_str = updated_at.strftime(self.TIMESTAMP_FORMAT)
+        self.channel_repo.put_object(clean_path='updated_at', content_body=updated_at_str)
+
+    def get_new_messages(self, receiver: str, since: datetime):
+        messages = db.session.query(models.Message).filter(
+            models.Message.payload['receiver'].as_string() == receiver,
+            models.Message.updated_at > since
+        ).order_by(models.Message.updated_at.asc()).all()
+        return messages
+
+    def get_last_updated_at(self):
+        try:
+            updated_at_str = self.channel_repo.get_object_content('updated_at').decode()
+            return datetime.strptime(updated_at_str, self.TIMESTAMP_FORMAT)
+        except ClientError as ex:
+            if ex.response['Error']['Code'] == 'NoSuchKey':
+                logger.warning('updated_at not found')
+            else:
+                raise
 
 
 class SubscriptionRegisterUseCase:

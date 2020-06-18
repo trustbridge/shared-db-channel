@@ -8,6 +8,7 @@ from libtrustbridge.websub.processors import Processor
 
 from api import use_cases
 from api.docs import spec
+from api.repos import ChannelRepo
 
 
 class GenerateApiSpecCommand(Command):
@@ -81,5 +82,23 @@ class RunCallbackDeliveryProcessorCommand(RunProcessorCommand):
         use_case = use_cases.DeliverCallbackUseCase(
             delivery_outbox_repo=delivery_outbox_repo,
             hub_url=config['HUB_URL'],
+        )
+        return Processor(use_case=use_case)
+
+
+class RunNewMessagesObserverCommand(RunProcessorCommand):
+    """
+    Watch for new messages being sent to us and send notifications by jurisdiction
+    """
+    def get_processor(self):
+        from flask import current_app
+        config = current_app.config
+        channel_repo = ChannelRepo(config['CHANNEL_REPO_CONF'])
+        notifications_repo = repos.NotificationsRepo(config['NOTIFICATIONS_REPO_CONF'])
+
+        use_case = use_cases.NewMessagesNotifyUseCase(
+            receiver=config['ENDPOINT'],
+            channel_repo=channel_repo,
+            notifications_repo=notifications_repo,
         )
         return Processor(use_case=use_case)
