@@ -17,11 +17,13 @@ class TestGetNewMessagesUseCase:
     @pytest.fixture(autouse=True)
     def message(self, request, db_session, clean_channel_repo, clean_notifications_repo):
         self.db_session = db_session
-        self.message = Message(payload={"receiver": "AU"})
+        self.message1 = Message(payload={"receiver": "AU"})
+        self.message2 = Message(payload={"receiver": "AU"})
+
         with freeze_time('2020-06-17 12:04:01.111111'):
             messages = [
-                self.message,
-                Message(payload={"receiver": "AU"}),
+                self.message1,
+                self.message2,
                 Message(payload={"receiver": "SG"}),
             ]
             for m in messages:
@@ -36,7 +38,7 @@ class TestGetNewMessagesUseCase:
             for m in messages:
                 self.db_session.add(m)
 
-            self.message.status = MessageStatus.REVOKED
+            self.message1.status = MessageStatus.REVOKED
             self.db_session.commit()
 
         self.channel_repo = clean_channel_repo
@@ -48,7 +50,7 @@ class TestGetNewMessagesUseCase:
         messages = self.use_case.get_new_messages(receiver='AU', since=now)
         assert len(messages) == 1
         assert messages[0].updated_at >= now
-        assert messages[0].id == self.message.id
+        assert messages[0].id == self.message1.id
 
     def test_set_last_updated__should_set_timestamp_into_channel_repo(self):
         updated_at = datetime(2020, 6, 17, 11, 34, 56, 123456)
@@ -64,7 +66,7 @@ class TestGetNewMessagesUseCase:
         self.use_case.set_last_updated_at(now)
         self.use_case.execute()
         notification = self.notifications_repo.get_job()
-        assert notification and notification[1] == {'content': {'id': 1}, 'topic': 'jurisdiction.AU'}
+        assert notification and notification[1] == {'content': {'id': self.message1.id}, 'topic': 'jurisdiction.AU'}
         assert not self.notifications_repo.get_job()
 
     def test_execute__when_no_last_updated_at__should_use_now(self):
@@ -73,8 +75,8 @@ class TestGetNewMessagesUseCase:
             self.use_case.execute()
         notification = self.notifications_repo.get_job()
         notification2 = self.notifications_repo.get_job()
-        assert notification and notification[1] == {'content': {'id': 1}, 'topic': 'jurisdiction.AU'}
-        assert notification2 and notification2[1] == {'content': {'id': 2}, 'topic': 'jurisdiction.AU'}
+        assert notification and notification[1] == {'content': {'id': self.message2.id}, 'topic': 'jurisdiction.AU'}
+        assert notification2 and notification2[1] == {'content': {'id': self.message1.id}, 'topic': 'jurisdiction.AU'}
         assert not self.notifications_repo.get_job()
 
 
