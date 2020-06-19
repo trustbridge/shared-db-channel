@@ -16,6 +16,7 @@ _mailinglist
 .idea/
 docs/_build/
 .vscode
+*~
 
 # Coverage reports
 htmlcov/
@@ -33,5 +34,4 @@ htmlcov/
 # test results
 /api/tests/results.xml
 
-/**/var/minio-data
-*~
+/docker/volumes/
