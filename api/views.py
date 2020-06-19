@@ -37,6 +37,8 @@ def index():
     data = {
         "service": current_app.config.get('SERVICE_NAME'),
     }
+    # mostly for Sentry debug - this page is not loaded frequently anyway
+    current_app.logger.warning("Index page is loaded")
     return JsonResponse(data)
 
 

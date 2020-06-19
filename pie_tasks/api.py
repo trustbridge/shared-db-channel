@@ -87,7 +87,7 @@ def docker_compose_config():
 @task
 def logs():
     COMPOSE_PROJECT_NAME = requires_compose_project_name()
-    Docker().cmd('logs', [f'{COMPOSE_PROJECT_NAME}_api_1'])
+    Docker().cmd('logs', ['--tail=50', '-f', f'{COMPOSE_PROJECT_NAME}_api_1'])
 
 
 @task

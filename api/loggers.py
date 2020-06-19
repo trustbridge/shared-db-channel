@@ -8,17 +8,6 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 def create_logger(config):
     SENTRY_DSN = config.get('SENTRY_DSN')
 
-    if SENTRY_DSN:  # pragma: no cover
-        sentry_logging = LoggingIntegration(
-            level=logging.INFO,  # Capture info and above as breadcrumbs
-            event_level=logging.ERROR  # Send errors as events
-        )
-
-        sentry_sdk.init(
-            dsn=SENTRY_DSN,
-            integrations=[sentry_logging]
-        )
-
     LOGGING = {
         'version': 1,
         'formatters': {
@@ -52,4 +41,16 @@ def create_logger(config):
         LOGGING['handlers']['console']['formatter'] = 'json'
 
     dictConfig(LOGGING)
-    return logging.getLogger('shared-db-channel')
+
+    if SENTRY_DSN:  # pragma: no cover
+        sentry_logging = LoggingIntegration(
+            level=logging.WARNING,  # Capture info and above as breadcrumbs
+            event_level=logging.WARNING  # Send errors as events
+        )
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[sentry_logging]
+        )
+
+    default_logger = logging.getLogger('shared-db-channel')
+    return default_logger

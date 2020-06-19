@@ -15,6 +15,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     LOG_FORMATTER_JSON = False
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SENTRY_DSN = environ.get("SENTRY_DSN")
 
     def __init__(self):
         if not hasattr(self, 'SUBSCRIPTIONS_REPO_CONF'):

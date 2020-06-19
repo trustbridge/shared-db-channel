@@ -1,11 +1,11 @@
-import logging
 import base64
-import boto3
+
 
 def decrypt_kms_data(encrypted_data, aws_region):
     """Decrypt KMS encoded data."""
-    import boto3  # local import so we don't need it installed for demo and local
+    import boto3  # local import so we don't need it installed for demo/local
     if not aws_region:
+        import logging  # due to logging complications
         logging.error(
             "Trying to decrypt KMS value but no AWS region set"
         )
@@ -45,5 +45,6 @@ def string_or_b64kms(value, kms_prefix, aws_region):
             if decrypted_value:
                 value = decrypted_value
     except Exception as e:
+        import logging  # due to logging complications
         logging.exception(e)
     return value
