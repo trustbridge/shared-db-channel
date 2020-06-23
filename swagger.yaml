@@ -36,6 +36,29 @@ components:
           readOnly: true
           type: integer
       type: object
+    SubscriptionForm:
+      properties:
+        hub.callback:
+          type: string
+        hub.lease_seconds:
+          default: 432000
+          format: int32
+          type: integer
+        hub.mode:
+          enum:
+          - subscribe
+          - unsubscribe
+          type: string
+        hub.secret:
+          maxLength: 200
+          type: string
+        hub.topic:
+          type: string
+      required:
+      - hub.callback
+      - hub.mode
+      - hub.topic
+      type: object
 info:
   title: Shared DB Channel API
   version: 1.0.0
@@ -43,6 +66,7 @@ openapi: 3.0.2
 paths:
   /messages:
     post:
+      description: Post a new message endpoint
       requestBody:
         content:
           application/json:
@@ -57,6 +81,7 @@ paths:
           description: Returns message id
   /messages/{id}:
     get:
+      description: Get message by ID
       parameters:
       - in: path
         name: id
@@ -79,3 +104,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/Message'
           description: Returns message object
+  /messages/subscriptions/by_jurisdiction:
+    post:
+      description: Subscribe to updates about new messages sent to jurisdiction (AU,
+        SG, etc.)
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionForm'
+      responses:
+        '202':
+          description: Client successfully subscribed/unsubscribed
+        '400':
+          description: Wrong params or intent verification failure
+  /messages/subscriptions/by_id:
+    post:
+      description: Subscribe to updates about a message (ie. status updates)
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionForm'
+      responses:
+        '202':
+          description: Client successfully subscribed/unsubscribed
+        '400':
+          description: Wrong params or intent verification failure

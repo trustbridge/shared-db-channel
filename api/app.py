@@ -38,5 +38,6 @@ def create_app(config_object=None):
 
 def register_specs(app):
     for view in app.view_functions.values():
-        if view.__name__ in ('post_message', 'get_message'):
+        views = ('post_message', 'get_message', 'subscriptions_by_jurisdiction', 'subscriptions_by_id')
+        if view.__name__ in views:
             spec.path(view=view, app=app)
