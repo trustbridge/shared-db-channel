@@ -36,7 +36,7 @@ class NewMessagesNotifyUseCase:
         messages = self.get_new_messages(receiver=self.receiver, since=since)
         use_case = PublishNewMessageUseCase(self.notifications_repo)
         for message in messages:
-            logger.info('processing message: %s', message.id)
+            logger.debug('processing message: %s', message.id)
             # TODO error handling to be implemented
             use_case.publish(message)
             self.set_last_updated_at(message.updated_at)
@@ -118,7 +118,7 @@ class PostNotificationUseCase:
             'topic': topic,
             'content': {'id': message.id}
         }
-        logger.info('publishing payload: %r', job_payload)
+        logger.debug('publish notification %r', job_payload)
         self.notifications_repo.post_job(job_payload)
 
     @staticmethod
@@ -243,10 +243,14 @@ class DeliverCallbackUseCase:
         attempt = int(job.get('retry', 1))
 
         try:
+            logger.debug('[%s] deliver notification to %s with payload: %s (attempt %s)',
+                         queue_msg_id, subscribe_url, payload, attempt)
             self._deliver_notification(subscribe_url, payload)
         except InvalidCallbackResponse as e:
+            logger.info("[%s] delivery failed", queue_msg_id)
             logger.exception(e)
             if attempt < self.MAX_ATTEMPTS:
+                logger.info("[%s] re-schedule delivery", queue_msg_id)
                 self._retry(subscribe_url, payload, attempt)
 
         self.delivery_outbox.delete(queue_msg_id)
@@ -268,9 +272,12 @@ class DeliverCallbackUseCase:
         header = {
             'Link': f'<{self.hub_url}>; rel="hub"'
         }
-        resp = requests.post(url, json=payload, headers=header)
-        if str(resp.status_code).startswith('2'):
-            return
+        try:
+            resp = requests.post(url, json=payload, headers=header)
+            if str(resp.status_code).startswith('2'):
+                return
+        except ConnectionError:
+            raise InvalidCallbackResponse("Connection error, url: %s", url)
 
         raise InvalidCallbackResponse("Subscription url %s seems to be invalid, "
                                       "returns %s", url, resp.status_code)

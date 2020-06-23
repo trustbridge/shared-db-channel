@@ -41,9 +41,15 @@ class GenerateApiSpecCommand(Command):
 
 
 class RunProcessorCommand(Command):
+
+    def __call__(self, app=None, *args, **kwargs):
+        self.app = app
+        return super().__call__(app, *args, **kwargs)
+
     def run(self):
         logger.info('Starting processor %s',self.__class__.__name__)
         processor = self.get_processor()
+        logger.info('Run processor for use case "%s"', processor.use_case.__class__.__name__)
 
         for result in processor:
             if result is None:
@@ -60,8 +66,7 @@ class RunCallbackSpreaderProcessorCommand(RunProcessorCommand):
     """
 
     def get_processor(self):
-        from flask import current_app
-        config = current_app.config
+        config = self.app.config
         notifications_repo = repos.NotificationsRepo(config['NOTIFICATIONS_REPO_CONF'])
         delivery_outbox_repo = repos.DeliveryOutboxRepo(config['DELIVERY_OUTBOX_REPO_CONF'])
         subscriptions_repo = repos.SubscriptionsRepo(config.get('SUBSCRIPTIONS_REPO_CONF'))
@@ -79,8 +84,7 @@ class RunCallbackDeliveryProcessorCommand(RunProcessorCommand):
     """
 
     def get_processor(self):
-        from flask import current_app
-        config = current_app.config
+        config = self.app.config
         delivery_outbox_repo = repos.DeliveryOutboxRepo(config['DELIVERY_OUTBOX_REPO_CONF'])
 
         use_case = use_cases.DeliverCallbackUseCase(
@@ -94,9 +98,9 @@ class RunNewMessagesObserverCommand(RunProcessorCommand):
     """
     Watch for new messages being sent to us and send notifications by jurisdiction
     """
+
     def get_processor(self):
-        from flask import current_app
-        config = current_app.config
+        config = self.app.config
         channel_repo = ChannelRepo(config['CHANNEL_REPO_CONF'])
         notifications_repo = repos.NotificationsRepo(config['NOTIFICATIONS_REPO_CONF'])
 
