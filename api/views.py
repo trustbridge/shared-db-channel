@@ -45,9 +45,10 @@ def index():
 @blueprint.route('/messages', methods=['POST'])
 def post_message():
     """
-    Post a new message endpoint
     ---
     post:
+        description:
+            Post a new message endpoint
         requestBody:
             content:
                 application/json:
@@ -86,9 +87,10 @@ def post_message():
 @use_kwargs({'fields': fields.DelimitedList(fields.Str())}, location="querystring")
 def get_message(id, fields=None):
     """
-    Get message by ID
     ---
     get:
+        description:
+            Get message by ID
         parameters:
             - name: id
               in: path
@@ -208,10 +210,39 @@ class BaseSubscriptionsView(View):
 
 
 class SubscriptionById(BaseSubscriptionsView):
-    pass
+    """
+    ---
+    post:
+        description:
+            Subscribe to updates about a message (ie. status updates)
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema: SubscriptionForm
+        responses:
+            202:
+                description: Client successfully subscribed/unsubscribed
+            400:
+                description: Wrong params or intent verification failure
+    """
 
 
 class SubscriptionByJurisdiction(BaseSubscriptionsView):
+    """
+    ---
+    post:
+        description:
+            Subscribe to updates about new messages sent to jurisdiction (AU, SG, etc.)
+        requestBody:
+            content:
+                application/x-www-form-urlencoded:
+                    schema: SubscriptionForm
+        responses:
+            202:
+                description: Client successfully subscribed/unsubscribed
+            400:
+                description: Wrong params or intent verification failure
+    """
     def get_topic(self, form_data):
         return "jurisdiction.%s" % form_data['topic']
 

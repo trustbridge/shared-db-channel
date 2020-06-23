@@ -3,7 +3,7 @@ from apispec.utils import validate_spec
 from api.docs import spec
 
 
-def test_post_message__should_be_registered_in_docs(app):
+def test_generated_swagger_file_is_up_to_date(app):
     with open('swagger.yaml') as fp:
         assert spec.to_yaml() == fp.read()
 
