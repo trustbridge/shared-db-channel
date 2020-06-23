@@ -1,5 +1,6 @@
 import logging
 from logging.config import dictConfig
+import sys
 
 import sentry_sdk
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -19,14 +20,19 @@ def create_logger(config):
             'console': {
                 'level': 'DEBUG',
                 'class': 'logging.StreamHandler',
+                'stream': sys.stdout,
                 'formatter': 'verbose',
             }
         },
-        'root': {
-            'handlers': ['console'],
-            'level': 'INFO',
+        'loggers': {
+            'api': {
+                'propagate': True,
+            },
+            'libtrustbridge': {
+                'propagate': True,
+            },
         },
-        '': {
+        'root': {
             'handlers': ['console'],
             'level': 'INFO',
         },

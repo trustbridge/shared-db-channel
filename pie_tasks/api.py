@@ -36,7 +36,7 @@ def start():
             DOCKER_COMPOSE.service('api').cmd(
                 'run',
                 options=['-d', f'--name api_{COMPOSE_PROJECT_NAME}_{worker}'],
-                container_cmd=f'python ./manage.py run_{worker}'
+                container_cmd=f'python manage.py run_{worker}'
             )
 
 
@@ -67,8 +67,7 @@ def test():
 @task
 def generate_swagger():
     with INSTANCE_ENVIRONMENT():
-        DOCKER_COMPOSE_SHARED_DB.service('api').cmd(
-            'run', options=['--rm'], container_cmd='python ./manage.py generate_swagger')
+        DOCKER_COMPOSE.service('api').cmd('run', options=['--rm'], container_cmd='python ./manage.py generate_swagger')
 
 
 @task
