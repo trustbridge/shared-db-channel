@@ -36,6 +36,7 @@ class NewMessagesNotifyUseCase:
         messages = self.get_new_messages(receiver=self.receiver, since=since)
         use_case = PublishNewMessageUseCase(self.notifications_repo)
         for message in messages:
+            logger.info('processing message: %s', message.id)
             # TODO error handling to be implemented
             use_case.publish(message)
             self.set_last_updated_at(message.updated_at)
@@ -117,6 +118,7 @@ class PostNotificationUseCase:
             'topic': topic,
             'content': {'id': message.id}
         }
+        logger.info('publishing payload: %r', job_payload)
         self.notifications_repo.post_job(job_payload)
 
     @staticmethod

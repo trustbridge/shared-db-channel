@@ -1,3 +1,4 @@
+import logging
 import time
 
 from apispec.exceptions import OpenAPIError
@@ -9,6 +10,8 @@ from libtrustbridge.websub.processors import Processor
 from api import use_cases
 from api.docs import spec
 from api.repos import ChannelRepo
+
+logger = logging.getLogger(__name__)
 
 
 class GenerateApiSpecCommand(Command):
@@ -39,6 +42,7 @@ class GenerateApiSpecCommand(Command):
 
 class RunProcessorCommand(Command):
     def run(self):
+        logger.info('Starting processor %s',self.__class__.__name__)
         processor = self.get_processor()
 
         for result in processor:
