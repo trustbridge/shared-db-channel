@@ -1,6 +1,6 @@
 import logging
-from logging.config import dictConfig
 import sys
+from logging.config import dictConfig
 
 import sentry_sdk
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -10,10 +10,11 @@ def create_logger(config):
     SENTRY_DSN = config.get('SENTRY_DSN')
 
     LOGGING = {
+        'disable_existing_loggers': False,
         'version': 1,
         'formatters': {
             'verbose': {
-                'format': '%(levelname)s[%(name)s] %(message)s'
+                'format': '%(asctime)-15s %(levelname)s [%(name)s] %(message)s'
             }
         },
         'handlers': {
@@ -31,10 +32,13 @@ def create_logger(config):
             'libtrustbridge': {
                 'propagate': True,
             },
+            'botocore': {
+                'level': 'INFO'
+            }
         },
         'root': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
     }
 
