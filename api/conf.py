@@ -25,7 +25,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
         if not hasattr(self, 'DELIVERY_OUTBOX_REPO_CONF'):
             self.DELIVERY_OUTBOX_REPO_CONF = env_queue_config('DELIVERY_OUTBOX_REPO')
         if not hasattr(self, 'CHANNEL_REPO_CONF'):
-            self.CHANNEL_REPO_CONF = env_queue_config('CHANNEL_REPO')
+            self.CHANNEL_REPO_CONF = env_s3_config('CHANNEL_REPO')
 
 
 class ProductionConfig(BaseConfig):
