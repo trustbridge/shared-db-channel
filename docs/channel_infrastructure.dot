@@ -1,0 +1,47 @@
+digraph d {
+pagedir="TL";
+rankdir="LR";
+
+{
+    rank="min";
+    subscriber [label="<<IGL Node>>\nSubscriber" shape="component"];
+}
+
+subgraph cluster_channel_endpoint{
+    clusterrank="local";
+    label="Channel Endpoint";
+    {
+        rank="same";
+        api [label="<<Flask API>>\nChannel Endpoint API" shape="component"];
+        message_observer [label="<<Python>>\nIncoming Message Observer" shape="component"];
+        callback_spreader [label="<<Python>>\nCallback Spreader" shape="component"];
+        callback_delivery [label="<<Python>>\nCallback Delivery" shape="component"];
+    }
+    {
+        rank="same";
+        channel_store [label="<<Minio>>\nChannel Store" shape="cylinder"];
+        subscription_store [label="<<Minio>>\nSubscription Store" shape="cylinder"];
+        subscription_event_queue [label="<<ElasticMQ>>\nSubscription Event Queue" shape="rectangle"];
+        subscription_delivery_queue [label="<<ElasticMQ>>\nSubscription Delivery Queue" shape="rectangle"];
+    }
+}
+
+{
+    rank="sink";
+    channel_medium [label="<<PostgreSQL DB>>\nChannel Medium\nShared DB" shape="cylinder"];
+}
+
+
+subscriber -> api;
+api -> subscription_store;
+api -> channel_medium [dir=both];
+
+message_observer -> channel_store [dir=both];
+message_observer -> subscription_event_queue;
+message_observer -> channel_medium;
+subscription_event_queue -> callback_spreader;
+subscription_store -> callback_spreader;
+callback_spreader -> subscription_delivery_queue;
+subscription_delivery_queue -> callback_delivery;
+callback_delivery -> subscriber;
+}

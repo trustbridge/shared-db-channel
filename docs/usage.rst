@@ -38,34 +38,8 @@ A shared database is used by multiple channel endpoints:
 Each instance of a shared DB channel has one PostgreSQL DB and 2 or more channel endpoints.
 A separate channel would have its own instance of the shared DB and its own instances of channel endpoints.
 
-.. uml::
 
-   @startuml
-   caption Instance of a single channel endpoint
-
-   [<<IGL Node>>\nSubscriber] as subscriber
-   package "Channel Endpoint" {
-      [<<Flask API>>\nChannel Endpoint API] as api
-      [<<Python>>\nIncoming Message Observer] as message_observer
-      [<<Python>>\nCallback Spreader] as callback_spreader
-      [<<Python>>\nCallback Delivery] as callback_delivery
-      [<<Minio>>\nChannel Store] as channel_store
-      [<<Minio>>\nSubscription Store] as subscription_store
-      [<<ElasticMQ>>\nSubscription Event Queue] as subscription_event_queue
-      [<<ElasticMQ>>\nSubscription Delivery Queue] as subscription_delivery_queue
-   }
-   Database "<<PostgreSQL DB>>\nChannel Medium\nShared DB" as channel_medium
-
-   api <--> channel_medium
-   api -down-> subscription_store
-   message_observer <-up-> channel_store
-   message_observer -down-> channel_medium
-   message_observer -down-> subscription_event_queue
-   callback_spreader <-up- subscription_event_queue
-   callback_spreader -down-> subscription_delivery_queue
-   callback_delivery <-up- subscription_delivery_queue
-   callback_delivery -up-> subscriber
-   @enduml
+.. graphviz:: channel_infrastructure.dot
 
 
 Instances can be spun up quickly using docker-compose. ``COMPOSE_PROJECT_NAME`` is used to select the instance to run.
