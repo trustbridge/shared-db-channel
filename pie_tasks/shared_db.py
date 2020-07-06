@@ -25,12 +25,15 @@ def start():
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.cmd('up',options=['-d'])
 
-
 @task
 def stop():
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.cmd('down')
 
+@task
+def restart():
+    stop()
+    start()
 
 @task
 def destroy():

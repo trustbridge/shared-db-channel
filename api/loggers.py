@@ -34,7 +34,10 @@ def create_logger(config):
             },
             'botocore': {
                 'level': 'INFO'
-            }
+            },
+            'flask': {
+                'propagate': False,
+            },
         },
         'root': {
             'handlers': ['console'],
