@@ -29,3 +29,15 @@ To start service using DB instance running on your host machine. Use env to setu
 To generate API spec::
 
    ./pie.py generate_swagger
+
+
+Subscriptions
+-------------
+
+Assuming you have Australian intergov started locally as it's stated in the readme
+
+To subscribe to all messages for the jurisdiction::
+
+    curl -v -XPOST \
+        http://localhost:8180/messages/subscriptions/by_jurisdiction \
+        -d 'hub.topic=AU&hub.callback=http://172.17.0.1:5009/channel-message&hub.mode=subscribe'

@@ -32,7 +32,9 @@ def create_app(config_object=None):
         migrate.init_app(app, db)
 
         register_specs(app)
-        app.config['HUB_URL'] = url_for('views.subscriptions_by_id')
+        # app.config['HUB_URL'] = url_for('views.subscriptions_by_id')
+        # this won't work for the cloud setup but we don't have any env va
+        app.config['HUB_URL'] = f"{app.config['SERVICE_URL']}/messages/subscriptions/by_id"
     return app
 
 

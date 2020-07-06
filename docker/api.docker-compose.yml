@@ -66,6 +66,7 @@ services:
       - IGL_DELIVERY_OUTBOX_REPO_USE_SSL
       - SENTRY_DSN
     command: "python manage.py runserver -h 0.0.0.0"
+    restart: on-failure
 
   tests:
     <<: *base-api

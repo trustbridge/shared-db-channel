@@ -10,12 +10,15 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     DEBUG = False
     TESTING = False
     SERVICE_NAME = 'shared-db-channel'
-    SERVER_NAME = 'localhost:5000'
+    # SERVER_NAME = '172.17.0.1'
     ENDPOINT = 'AU'
     LOG_FORMATTER_JSON = False
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SENTRY_DSN = environ.get("SENTRY_DSN")
+
+    # set it to https://shared.channel.gov.leg/ or whatever
+    SERVICE_URL = environ.get("SERVICE_URL", default="http://172.17.0.1")
 
     def __init__(self):
         if not hasattr(self, 'SUBSCRIPTIONS_REPO_CONF'):
