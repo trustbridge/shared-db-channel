@@ -4,7 +4,7 @@ Intergov WebSub
    :maxdepth: 2
    :caption: Contents
 
-   usage
+   overview
    development
 
 

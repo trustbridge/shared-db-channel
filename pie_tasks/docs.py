@@ -22,7 +22,7 @@ def create_docker_image():
 
 
 @task
-def build_docs():
+def build():
     """Build the docs and exit"""
     sphinx_args = [
         '-a',
@@ -35,7 +35,7 @@ def build_docs():
 
 
 @task
-def build_docs_autobuild():
+def autobuild():
     """Build the docs and run a server that hosts the docs and will automatically rebuild them on changes"""
     sphinx_args = [
         '-a',

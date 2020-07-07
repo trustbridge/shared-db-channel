@@ -1,8 +1,12 @@
+import shutil
+from pathlib import Path
+
 from pie_docker import *
 from pie_docker_compose import *
 from pie_env_ext import *
 
 from .utils import requires_compose_project_name
+
 
 ROOT_DIR = Path('.').absolute()
 ENV_DIR = ROOT_DIR / 'docker'
@@ -31,13 +35,6 @@ def start():
     COMPOSE_PROJECT_NAME = requires_compose_project_name()
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.cmd('up', options=['-d', 'api'])
-        workers = ['callback_spreader', 'callback_delivery', 'message_observer']
-        for worker in workers:
-            DOCKER_COMPOSE.service('api').cmd(
-                'run',
-                options=['-d', f'--name api_{COMPOSE_PROJECT_NAME}_{worker}'],
-                container_cmd=f'python manage.py run_{worker}'
-            )
 
 
 @task
@@ -50,6 +47,16 @@ def stop():
 def restart():
     stop()
     start()
+
+
+@task
+def reset():
+    """Removes the minio data and resets the elasticmq queue"""
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
+    p=Path(f'docker/volumes/{COMPOSE_PROJECT_NAME}')
+    if p.exists():
+        shutil.rmtree(p)
+    # no action needed to reset elasticmq, just stop and start, I believe
 
 
 @task
@@ -85,8 +92,8 @@ def docker_compose_config():
 
 @task
 def logs():
-    COMPOSE_PROJECT_NAME = requires_compose_project_name()
-    Docker().cmd('logs', ['--tail=50', '-f', f'{COMPOSE_PROJECT_NAME}_api_1'])
+    with INSTANCE_ENVIRONMENT():
+        DOCKER_COMPOSE.cmd('logs', options=['--tail=40', '-f'])
 
 
 @task

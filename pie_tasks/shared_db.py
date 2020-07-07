@@ -36,15 +36,22 @@ def restart():
     start()
 
 @task
+def reset():
+    """Removes the postgres_data volume"""
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
+    Docker().cmd('volume rm',[f'{COMPOSE_PROJECT_NAME}_postgresql_data'])
+
+@task
 def destroy():
+    """Destroys containers, images, networks and volumes"""
     with INSTANCE_ENVIRONMENT():
-        DOCKER_COMPOSE.cmd('down',options=['-v','--rmi local'])# --rmi all
+        DOCKER_COMPOSE.cmd('down',options=['-v','--rmi local'])
 
 
 @task
 def logs():
-    COMPOSE_PROJECT_NAME=requires_compose_project_name()
-    Docker().cmd('logs',[f'{COMPOSE_PROJECT_NAME}_postgres_1'])
+    with INSTANCE_ENVIRONMENT():
+        DOCKER_COMPOSE.cmd('logs', options=['--tail=40', '-f'])
 
 @task
 def show_env():
