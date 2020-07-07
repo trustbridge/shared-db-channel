@@ -8,6 +8,33 @@ x-services:
     depends_on:
       - elasticmq
       - minio
+    environment:
+      - SERVER_NAME
+      - DATABASE_URI
+      - ENDPOINT
+      - IGL_CHANNEL_REPO_HOST
+      - IGL_CHANNEL_REPO_PORT
+      - IGL_CHANNEL_REPO_ACCESS_KEY
+      - IGL_CHANNEL_REPO_SECRET_KEY
+      - IGL_CHANNEL_REPO_USE_SSL
+      - IGL_SUBSCRIPTIONS_REPO_HOST
+      - IGL_SUBSCRIPTIONS_REPO_PORT
+      - IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY
+      - IGL_SUBSCRIPTIONS_REPO_SECRET_KEY
+      - IGL_SUBSCRIPTIONS_REPO_USE_SSL
+      - IGL_NOTIFICATIONS_REPO_HOST
+      - IGL_NOTIFICATIONS_REPO_PORT
+      - IGL_NOTIFICATIONS_REPO_REGION
+      - IGL_NOTIFICATIONS_REPO_ACCESS_KEY
+      - IGL_NOTIFICATIONS_REPO_SECRET_KEY
+      - IGL_NOTIFICATIONS_REPO_USE_SSL
+      - IGL_DELIVERY_OUTBOX_REPO_HOST
+      - IGL_DELIVERY_OUTBOX_REPO_PORT
+      - IGL_DELIVERY_OUTBOX_REPO_REGION
+      - IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY
+      - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY
+      - IGL_DELIVERY_OUTBOX_REPO_USE_SSL
+      - SENTRY_DSN
     volumes:
       - ..:/src
 
@@ -38,35 +65,27 @@ services:
   api:
     <<: *base-api
     ports: ['$API_BIND_HOST_PORT:5000']
-    environment:
-      - SERVER_NAME
-      - DATABASE_URI
-      - ENDPOINT
-      - IGL_CHANNEL_REPO_HOST
-      - IGL_CHANNEL_REPO_PORT
-      - IGL_CHANNEL_REPO_ACCESS_KEY
-      - IGL_CHANNEL_REPO_SECRET_KEY
-      - IGL_CHANNEL_REPO_USE_SSL
-      - IGL_SUBSCRIPTIONS_REPO_HOST
-      - IGL_SUBSCRIPTIONS_REPO_PORT
-      - IGL_SUBSCRIPTIONS_REPO_ACCESS_KEY
-      - IGL_SUBSCRIPTIONS_REPO_SECRET_KEY
-      - IGL_SUBSCRIPTIONS_REPO_USE_SSL
-      - IGL_NOTIFICATIONS_REPO_HOST
-      - IGL_NOTIFICATIONS_REPO_PORT
-      - IGL_NOTIFICATIONS_REPO_REGION
-      - IGL_NOTIFICATIONS_REPO_ACCESS_KEY
-      - IGL_NOTIFICATIONS_REPO_SECRET_KEY
-      - IGL_NOTIFICATIONS_REPO_USE_SSL
-      - IGL_DELIVERY_OUTBOX_REPO_HOST
-      - IGL_DELIVERY_OUTBOX_REPO_PORT
-      - IGL_DELIVERY_OUTBOX_REPO_REGION
-      - IGL_DELIVERY_OUTBOX_REPO_ACCESS_KEY
-      - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY
-      - IGL_DELIVERY_OUTBOX_REPO_USE_SSL
-      - SENTRY_DSN
+    depends_on:
+      # merge keys don't merge arrays, so we need to repeat elasticmq and minio here
+      - elasticmq
+      - minio
+      - message_observer
+      - callback_spreader
+      - callback_delivery
     command: "python manage.py runserver -h 0.0.0.0"
     restart: on-failure
+
+  message_observer:
+    <<: *base-api
+    command: "python manage.py run_message_observer"
+
+  callback_spreader:
+    <<: *base-api
+    command: "python manage.py run_callback_spreader"
+
+  callback_delivery:
+    <<: *base-api
+    command: "python manage.py run_callback_delivery"
 
   tests:
     <<: *base-api

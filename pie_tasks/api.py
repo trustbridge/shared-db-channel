@@ -31,13 +31,6 @@ def start():
     COMPOSE_PROJECT_NAME = requires_compose_project_name()
     with INSTANCE_ENVIRONMENT():
         DOCKER_COMPOSE.cmd('up', options=['-d', 'api'])
-        workers = ['callback_spreader', 'callback_delivery', 'message_observer']
-        for worker in workers:
-            DOCKER_COMPOSE.service('api').cmd(
-                'run',
-                options=['-d', f'--name api_{COMPOSE_PROJECT_NAME}_{worker}'],
-                container_cmd=f'python manage.py run_{worker}'
-            )
 
 
 @task
