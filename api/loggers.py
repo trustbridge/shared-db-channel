@@ -38,6 +38,9 @@ def create_logger(config):
             'flask': {
                 'propagate': False,
             },
+            'urllib3': {
+                'level': 'INFO'
+            },
         },
         'root': {
             'handlers': ['console'],
