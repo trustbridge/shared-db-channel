@@ -1,8 +1,12 @@
+import shutil
+from pathlib import Path
+
 from pie_docker import *
 from pie_docker_compose import *
 from pie_env_ext import *
 
 from .utils import requires_compose_project_name
+
 
 ROOT_DIR = Path('.').absolute()
 ENV_DIR = ROOT_DIR / 'docker'
@@ -43,6 +47,16 @@ def stop():
 def restart():
     stop()
     start()
+
+
+@task
+def reset():
+    """Removes the minio data and resets the elasticmq queue"""
+    COMPOSE_PROJECT_NAME=requires_compose_project_name()
+    p=Path(f'docker/volumes/{COMPOSE_PROJECT_NAME}')
+    if p.exists():
+        shutil.rmtree(p)
+    # no action needed to reset elasticmq, just stop and start, I believe
 
 
 @task
