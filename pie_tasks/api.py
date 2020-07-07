@@ -92,8 +92,8 @@ def docker_compose_config():
 
 @task
 def logs():
-    COMPOSE_PROJECT_NAME = requires_compose_project_name()
-    Docker().cmd('logs', ['--tail=50', '-f', f'{COMPOSE_PROJECT_NAME}_api_1'])
+    with INSTANCE_ENVIRONMENT():
+        DOCKER_COMPOSE.cmd('logs', options=['--tail=40', '-f'])
 
 
 @task
