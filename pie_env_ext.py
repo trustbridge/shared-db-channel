@@ -43,3 +43,11 @@ class env(env):
                 file_d=cls._parse_lines(fin.readlines())
                 d.update(file_d)
         return cls(d)
+
+
+    @classmethod
+    def dump_env(cls):
+        import os
+        for k in sorted(os.environ.keys()):
+            v=os.environ[k]
+            print(f'{k}={v}')
