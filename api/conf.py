@@ -24,7 +24,12 @@ class BaseConfig(metaclass=MetaFlaskEnv):
 
     def __init__(self):
         if not hasattr(self, 'SUBSCRIPTIONS_REPO_CONF'):
-            self.SUBSCRIPTIONS_REPO_CONF = env_s3_config('SUBSCRIPTIONS_REPO')
+            if not environ.get("IGL_SUBSCRIPTIONS_REPO_BUCKET") and environ.get('IGL_CHANNEL_REPO_BUCKET'):
+                # we don't have subscr repo but have channel repo, which can be re-used
+                # because data won't be overlapping
+                self.SUBSCRIPTIONS_REPO_CONF = env_s3_config('CHANNEL_REPO')
+            else:
+                self.SUBSCRIPTIONS_REPO_CONF = env_s3_config('SUBSCRIPTIONS_REPO')
         if not hasattr(self, 'NOTIFICATIONS_REPO_CONF'):
             self.NOTIFICATIONS_REPO_CONF = env_queue_config('NOTIFICATIONS_REPO')
         if not hasattr(self, 'DELIVERY_OUTBOX_REPO_CONF'):
@@ -41,6 +46,7 @@ class ProductionConfig(BaseConfig):
         SQLALCHEMY_DATABASE_URI = string_or_b64kms(environ.get('DATABASE_URI'), KMS_PREFIX, AWS_REGION)
     else:
         SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
+
 
 class DevelopmentConfig(BaseConfig):
     ENV = 'development'

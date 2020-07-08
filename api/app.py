@@ -20,6 +20,12 @@ def create_app(config_object=None):
     app.config.from_object(config_object)
     app.logger = loggers.create_logger(app.config)
 
+    SENTRY_DSN = app.config.get("SENTRY_DSN")
+    if SENTRY_DSN:
+        import sentry_sdk
+        from sentry_sdk.integrations.flask import FlaskIntegration
+        sentry_sdk.init(SENTRY_DSN, integrations=[FlaskIntegration()])
+
     db.init_app(app)
 
     with app.app_context():

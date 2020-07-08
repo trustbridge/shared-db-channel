@@ -4,7 +4,7 @@ from http import HTTPStatus
 
 import marshmallow
 import requests
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, jsonify
 from flask import current_app
 from flask.views import View
 from libtrustbridge.utils.routing import mimetype
@@ -14,6 +14,7 @@ from libtrustbridge.websub.repos import SubscriptionsRepo, NotificationsRepo
 from libtrustbridge.websub.schemas import SubscriptionForm
 from webargs import fields
 from webargs.flaskparser import use_kwargs
+from werkzeug.exceptions import HTTPException
 
 from api import use_cases
 from api.models import Message, db
@@ -257,3 +258,35 @@ blueprint.add_url_rule(
     '/messages/subscriptions/by_id',
     view_func=SubscriptionById.as_view('subscriptions_by_id')
 )
+
+
+@blueprint.app_errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
+
+
+@blueprint.app_errorhandler(Exception)
+def handle_unexpected_error(error):
+    current_app.logger.exception(error)
+    status_code = 500
+    success = False
+    response = {
+        'success': success,
+        'error': {
+            'type': 'UnexpectedException',
+            'message': 'An unexpected error has occurred.',
+            'details': str(error),
+        }
+    }
+
+    return jsonify(response), status_code
