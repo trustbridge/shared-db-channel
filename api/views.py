@@ -158,6 +158,8 @@ class BaseSubscriptionsView(View):
         except marshmallow.ValidationError as e:  # TODO integrate marshmallow and libtrustbridge.errors.handlers
             return JsonResponse(e.messages, status=HTTPStatus.BAD_REQUEST)
 
+        current_app.logger.info("Subscription request received: %s", form_data)
+
         topic = self.get_topic(form_data)
         callback = form_data['callback']
         mode = form_data['mode']

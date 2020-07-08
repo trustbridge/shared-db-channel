@@ -35,6 +35,11 @@ class NewMessagesNotifyUseCase:
 
         messages = self.get_new_messages(receiver=self.receiver, since=since)
         use_case = PublishNewMessageUseCase(self.notifications_repo)
+        if messages:
+            logger.info(
+                "There are %s new messages to be notified since %sZ",
+                len(messages), since
+            )
         for message in messages:
             logger.debug('processing message: %s', message.id)
             # TODO error handling to be implemented
