@@ -14,12 +14,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     ENDPOINT = 'AU'
     LOG_FORMATTER_JSON = False
 
-    KMS_PREFIX = environ.get('KMS_PREFIX', None)
-    AWS_REGION = environ.get('AWS_REGION', None)
-    if KMS_PREFIX and AWS_REGION:
-        SQLALCHEMY_DATABASE_URI = string_or_b64kms(environ.get('DATABASE_URI'), KMS_PREFIX, AWS_REGION)
-    else:
-        SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
+    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SENTRY_DSN = environ.get("SENTRY_DSN")
@@ -40,11 +35,12 @@ class BaseConfig(metaclass=MetaFlaskEnv):
 
 class ProductionConfig(BaseConfig):
     ENV = 'production'
-
-
-class AWSProductionConfig(ProductionConfig):
-    pass
-
+    KMS_PREFIX = environ.get('KMS_PREFIX', None)
+    AWS_REGION = environ.get('AWS_REGION', None)
+    if KMS_PREFIX and AWS_REGION:
+        SQLALCHEMY_DATABASE_URI = string_or_b64kms(environ.get('DATABASE_URI'), KMS_PREFIX, AWS_REGION)
+    else:
+        SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
 
 class DevelopmentConfig(BaseConfig):
     ENV = 'development'
