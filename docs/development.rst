@@ -23,6 +23,23 @@ Instructions
 
 Depending on how you have configured your command line, you may need to substitute ``pie`` below for ``./pie.py`` or ``python3 pie.py``
 
+Short version to start au, sg and db between them:
+
+.. code::
+
+   cd shared-db-channel
+   set COMPOSE_PROJECT_NAME=au_sg_channel
+   python3 pie.py shared_db.destroy
+   python3 pie.py shared_db.start
+
+   set COMPOSE_PROJECT_NAME=au_sg_channel_au_endpoint
+   python3 pie.py api.build
+   python3 pie.py api.upgrade_db_schema
+   python3 pie.py api.start
+
+   set COMPOSE_PROJECT_NAME=au_sg_channel_sg_endpoint
+   python3 pie.py api.start
+
 Start the AU-SG shared DB:
 
 .. code::

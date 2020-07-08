@@ -13,7 +13,14 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     # SERVER_NAME = '172.17.0.1'
     ENDPOINT = 'AU'
     LOG_FORMATTER_JSON = False
-    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
+
+    KMS_PREFIX = environ.get('KMS_PREFIX', None)
+    AWS_REGION = environ.get('AWS_REGION', None)
+    if KMS_PREFIX and AWS_REGION:
+        SQLALCHEMY_DATABASE_URI = string_or_b64kms(environ.get('DATABASE_URI'), KMS_PREFIX, AWS_REGION)
+    else:
+        SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SENTRY_DSN = environ.get("SENTRY_DSN")
 
@@ -36,11 +43,7 @@ class ProductionConfig(BaseConfig):
 
 
 class AWSProductionConfig(ProductionConfig):
-    """Support for sensitive env vars encrypted with AWS KMS"""
-    KMS_PREFIX = environ.get('KMS_PREFIX', None)
-    AWS_REGION = environ.get('AWS_REGION', None)
-    if KMS_PREFIX and AWS_REGION:
-        SQLALCHEMY_DATABASE_URI = string_or_b64kms(environ.get('DATABASE_URI'), KMS_PREFIX, AWS_REGION)
+    pass
 
 
 class DevelopmentConfig(BaseConfig):
