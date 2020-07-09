@@ -169,11 +169,20 @@ class BaseSubscriptionsView(View):
         try:
             self.verify(callback, mode, topic, lease_seconds)
         except IntentVerificationFailure:
+            current_app.logger.error(
+                "Intent verification failed for the %s", form_data.get("callback")
+            )
             return JsonResponse({'error': 'Intent verification failed'}, status=HTTPStatus.BAD_REQUEST)
 
         if mode == MODE_ATTR_SUBSCRIBE_VALUE:
+            current_app.logger.info(
+                "Subscribed %s to %s", form_data.get("callback"), form_data.get("topic")
+            )
             self._subscribe(callback, topic, lease_seconds)
         else:
+            current_app.logger.info(
+                "Unsubscribed %s from %s", form_data.get("callback"), form_data.get("topic")
+            )
             self._unsubscribe(callback, topic)
 
         return JsonResponse(status=HTTPStatus.ACCEPTED)
