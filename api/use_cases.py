@@ -193,12 +193,16 @@ class DispatchMessageToSubscribersUseCase:
 
         for subscription in subscriptions:
             if not subscription.is_valid:
+                logger.info("Found invalid subscription %s", subscription)
                 continue
             job = {
                 's': subscription.callback_url,
                 'payload': content,
             }
-            logger.info("Scheduling notification of \n[%s] with the content \n%s", subscription.callback_url, content)
+            logger.info(
+                "Will be notifying '%s' with '%s'",
+                subscription.callback_url, content
+            )
             self.delivery_outbox.post_job(job)
 
         self.notifications.delete(msg_id)
@@ -208,6 +212,8 @@ class DispatchMessageToSubscribersUseCase:
         subscribers = self.subscriptions.get_subscriptions_by_pattern(pattern)
         if not subscribers:
             logger.info("Nobody to notify about the topic %s", topic)
+        else:
+            logger.info("The topic %s has %s subscriber(s)", topic, len(subscribers))
         return subscribers
 
 
