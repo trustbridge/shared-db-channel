@@ -192,6 +192,26 @@ class TestSubscriptions:
             'hub.topic': ['Missing data for required field.'],
         }
 
+    def test_post__with_wrong_payload_type__should_return_error(self):
+        response = self.client.post(
+            url_for('views.subscriptions_by_id'),
+            mimetype='application/json',
+            data="{}"
+        )
+        assert response.status_code == 415, response.json
+
+    @patch('api.views.SubscriptionForm', side_effect=Exception)
+    def test_post_when_internal_error__should_return_500(self, mocked):
+        response = self.do_subscribe_by_id_request({})
+        assert response.status_code == 500
+        assert response.json == {'errors': [{
+            'code': 'internal-server-error',
+            'detail': 'Unexpected server error occured.',
+            'source': [{'str': '', 'type': 'Exception'}],
+            'status': 'Internal Server Error',
+            'title': 'Internal Server Error'
+        }]}
+
     def test_post_when_verification_of_intent_return_non_200__should_fail(self):
         self.mocked_responses.add(
             responses.GET,

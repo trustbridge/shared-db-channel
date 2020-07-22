@@ -165,7 +165,6 @@ class BaseSubscriptionsView(View):
         callback = form_data['callback']
         mode = form_data['mode']
         lease_seconds = form_data['lease_seconds']
-
         try:
             self.verify(callback, mode, topic, lease_seconds)
         except IntentVerificationFailure:
