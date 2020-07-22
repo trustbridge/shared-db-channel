@@ -53,7 +53,7 @@ class TestPostMessage:
         response = self.client.post(url_for('views.post_message'), json=self.message_data)
         message_id = response.json['id']
         assert 'Link' in response.headers
-        assert response.headers['Link'] == ('<http://172.17.0.1/messages/subscriptions/by_id>; rel="hub", '
+        assert response.headers['Link'] == ('<http://testing/messages/subscriptions/by_id>; rel="hub", '
                                             f'<{message_id}>; rel="self"')
 
     def test_message__when_posted__should_publish_notification(self):
