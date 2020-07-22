@@ -3,7 +3,7 @@ version: '3.5'
 networks:
   igl_local_devnet:
     driver: bridge
-
+    name: igl_local_devnet
 
 volumes:
   # named volumes are needed because permissions don't work on Windows
