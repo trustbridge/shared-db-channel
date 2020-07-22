@@ -59,7 +59,6 @@ class TestingConfig(BaseConfig):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     ENDPOINT = 'AU'
-    SERVER_NAME = 'localhost'
     test_minio = {
         'use_ssl': False,
         'host': environ.get('TEST_MINIO_HOST'),

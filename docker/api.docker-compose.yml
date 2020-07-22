@@ -10,7 +10,6 @@ x-services:
       - minio
     environment:
       - SERVICE_URL
-      - SERVER_NAME
       - DATABASE_URI
       - ENDPOINT
       - IGL_CHANNEL_REPO_HOST
@@ -36,8 +35,16 @@ x-services:
       - IGL_DELIVERY_OUTBOX_REPO_SECRET_KEY
       - IGL_DELIVERY_OUTBOX_REPO_USE_SSL
       - SENTRY_DSN
+    networks:
+      - igl_local_devnet
     volumes:
       - ..:/src
+
+
+networks:
+  igl_local_devnet:
+    driver: bridge
+    external: true
 
 
 services:
@@ -53,6 +60,8 @@ services:
     # but it's useful for starting service on the host
     ports: ['${MINIO_BIND_HOST_PORT}:9000']
     restart: on-failure
+    networks:
+      - igl_local_devnet
     volumes:
       - ./volumes/${COMPOSE_PROJECT_NAME}/var/minio-data:/minio-data
     logging:
@@ -61,6 +70,8 @@ services:
   elasticmq:
     image: softwaremill/elasticmq
     ports: ['${ELASTICMQ_BIND_HOST_PORT}:9324']
+    networks:
+      - igl_local_devnet
     volumes: ['./elasticmq.conf:/opt/elasticmq.conf']
     restart: on-failure
     logging:
