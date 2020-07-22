@@ -9,6 +9,7 @@ x-services:
       - elasticmq
       - minio
     environment:
+      - SERVICE_URL
       - SERVER_NAME
       - DATABASE_URI
       - ENDPOINT
