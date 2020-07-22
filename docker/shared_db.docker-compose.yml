@@ -1,5 +1,11 @@
 version: '3.5'
 
+networks:
+  igl_local_devnet:
+    driver: bridge
+    external: true
+
+
 volumes:
   # named volumes are needed because permissions don't work on Windows
   # otherwise, which breaks PostgreSQL. COMPOSE_PROJECT_NAME is automatically
@@ -14,6 +20,8 @@ services:
       - POSTGRES_USER=$POSTGRES_USER
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - POSTGRES_DB=$POSTGRES_DB
+    networks:
+      - igl_local_devnet
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     ports: ['${DB_PORT}:5432']
