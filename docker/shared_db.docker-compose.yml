@@ -3,7 +3,6 @@ version: '3.5'
 networks:
   igl_local_devnet:
     driver: bridge
-    external: true
 
 
 volumes:
