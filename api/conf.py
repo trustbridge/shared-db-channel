@@ -10,7 +10,6 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     DEBUG = False
     TESTING = False
     SERVICE_NAME = 'shared-db-channel'
-    # SERVER_NAME = '172.17.0.1'
     ENDPOINT = 'AU'
     LOG_FORMATTER_JSON = False
 
@@ -20,7 +19,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     SENTRY_DSN = environ.get("SENTRY_DSN")
 
     # set it to https://shared.channel.gov.leg/ or whatever
-    SERVICE_URL = environ.get("SERVICE_URL", default="http://172.17.0.1")
+    SERVICE_URL = environ.get("SERVICE_URL")
 
     def __init__(self):
         if not hasattr(self, 'SUBSCRIPTIONS_REPO_CONF'):
@@ -60,7 +59,7 @@ class TestingConfig(BaseConfig):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     ENDPOINT = 'AU'
-    SERVER_NAME = 'localhost'
+    SERVICE_URL = 'http://testing'
     test_minio = {
         'use_ssl': False,
         'host': environ.get('TEST_MINIO_HOST'),

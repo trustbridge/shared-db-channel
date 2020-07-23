@@ -42,10 +42,12 @@ def create_app(config_object=None):
         handlers.register(app)
         register_specs(app)
 
-        app.config['HUB_URL'] = urljoin(
-            app.config['SERVICE_URL'],
-            url_for('views.subscriptions_by_id', _external=False)
-        )
+        with app.test_request_context():
+            app.config['HUB_URL'] = urljoin(
+                app.config['SERVICE_URL'],
+                url_for('views.subscriptions_by_id', _external=False)
+            )
+
     return app
 
 
