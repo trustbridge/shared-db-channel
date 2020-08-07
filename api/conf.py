@@ -10,7 +10,7 @@ class BaseConfig(metaclass=MetaFlaskEnv):
     DEBUG = False
     TESTING = False
     SERVICE_NAME = 'shared-db-channel'
-    ENDPOINT = 'AU'
+    JURISDICTION = 'AU'
     LOG_FORMATTER_JSON = False
 
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URI')
@@ -58,7 +58,7 @@ class TestingConfig(BaseConfig):
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
-    ENDPOINT = 'AU'
+    JURISDICTION = 'AU'
     SERVICE_URL = 'http://testing'
     test_minio = {
         'use_ssl': False,

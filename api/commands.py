@@ -105,7 +105,7 @@ class RunNewMessagesObserverCommand(RunProcessorCommand):
         notifications_repo = repos.NotificationsRepo(config['NOTIFICATIONS_REPO_CONF'])
 
         use_case = use_cases.NewMessagesNotifyUseCase(
-            receiver=config['ENDPOINT'],
+            receiver=config['JURISDICTION'],
             channel_repo=channel_repo,
             notifications_repo=notifications_repo,
         )
