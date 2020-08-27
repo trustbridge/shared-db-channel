@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
 
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.graphviz',
     'sphinxcontrib.plantuml',
-    'sphinxcontrib.spelling'
+    'sphinxcontrib.spelling',
+    'sphinxcontrib.redoc',
 ]
 
-spelling_lang='en_US'
-spelling_word_list_filename='wordlist.txt'
+spelling_lang = 'en_US'
+spelling_word_list_filename = 'wordlist.txt'
 
 templates_path = ['_templates']
 source_suffix = '.rst'
@@ -24,3 +23,16 @@ exclude_patterns = ['_build', '.venv']
 pygments_style = 'sphinx'
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+redoc = [
+    {
+        'name': 'Shared DB Channel API',
+        'page': 'api',
+        'spec': 'swagger.yaml',
+        'embed': True,
+        'opts': {
+            'hide-hostname': True,
+            'suppress-warnings': True,
+        },
+    },
+]

@@ -23,7 +23,7 @@ class GenerateApiSpecCommand(Command):
         return (
             Option('-f', '--filename',
                    dest='filename',
-                   default='swagger.yaml',
+                   default='docs/swagger.yaml',
                    help='save generated spec into file'),
         )
 
