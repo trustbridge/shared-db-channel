@@ -7,10 +7,14 @@ Intergov WebSub
    overview
    development
 
-
 Indices and tables
 ------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Specs
+-----
+
+* `API spec <api.html>`__

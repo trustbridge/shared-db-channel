@@ -4,7 +4,7 @@ from api.docs import spec
 
 
 def test_generated_swagger_file_is_up_to_date(app):
-    with open('swagger.yaml') as fp:
+    with open('docs/swagger.yaml') as fp:
         assert spec.to_yaml() == fp.read()
 
 
