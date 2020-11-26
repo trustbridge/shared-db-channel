@@ -48,18 +48,28 @@ def post_message():
     """
     ---
     post:
+        servers:
+            - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
         description:
             Post a new message endpoint
         requestBody:
             content:
                 application/json:
                     schema: MessagePayloadSchema
+                    example:
+                        sender: AU
+                        receiver: CN
+                        subject: AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX
+                        obj: QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n
+                        predicate: UN.CEFACT.Trade.CertificateOfOrigin.created
         responses:
             201:
                 description: Returns message id
                 content:
                     application/json:
                         schema: PostedMessageSchema
+                        example:
+                            id: 1
     """
     schema = MessagePayloadSchema()
     try:
@@ -90,6 +100,8 @@ def get_message(id, fields=None):
     """
     ---
     get:
+        servers:
+            - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
         description:
             Get message by ID
         parameters:
@@ -99,6 +111,7 @@ def get_message(id, fields=None):
               schema:
                 type: integer
                 format: int64
+              example: 123
             - in: query
               name: fields
               schema:
@@ -107,12 +120,22 @@ def get_message(id, fields=None):
                   type: string
               style: form
               explode: false
+              example: id,status,message
         responses:
             200:
                 description: Returns message object
                 content:
                     application/json:
                         schema: MessageSchema
+                        example:
+                            id: 123
+                            message:
+                                sender: AU
+                                receiver: CN
+                                subject: AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX
+                                obj: QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n
+                                predicate: UN.CEFACT.Trade.CertificateOfOrigin.created
+                            status: received
     """
     message = db.session.query(Message).get(id)
     if not message:
@@ -224,12 +247,18 @@ class SubscriptionById(BaseSubscriptionsView):
     """
     ---
     post:
+        servers:
+            - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
         description:
             Subscribe to updates about a message (ie. status updates)
         requestBody:
             content:
                 application/x-www-form-urlencoded:
                     schema: SubscriptionForm
+                    example:
+                        hub.mode: subscribe
+                        hub.topic: 123
+                        hub.callback: 'https://callback.url/1'
         responses:
             202:
                 description: Client successfully subscribed/unsubscribed
@@ -242,12 +271,18 @@ class SubscriptionByJurisdiction(BaseSubscriptionsView):
     """
     ---
     post:
+        servers:
+            - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
         description:
             Subscribe to updates about new messages sent to jurisdiction (AU, SG, etc.)
         requestBody:
             content:
                 application/x-www-form-urlencoded:
                     schema: SubscriptionForm
+                    example:
+                        hub.mode: subscribe
+                        hub.topic: 'AU'
+                        hub.callback: 'https://callback.url/1'
         responses:
             202:
                 description: Client successfully subscribed/unsubscribed

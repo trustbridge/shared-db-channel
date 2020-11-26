@@ -24,6 +24,7 @@ pygments_style = 'sphinx'
 html_theme = 'alabaster'
 html_static_path = ['_static']
 
+redoc_uri = 'https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js'
 redoc = [
     {
         'name': 'Shared DB Channel API',
@@ -31,6 +32,7 @@ redoc = [
         'spec': 'swagger.yaml',
         'embed': True,
         'opts': {
+            'required-props-first': True,
             'hide-hostname': True,
             'suppress-warnings': True,
         },

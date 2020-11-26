@@ -30,7 +30,8 @@ class GenerateApiSpecCommand(Command):
     def run(self, filename):
         try:
             validate_spec(spec)
-        except OpenAPIError:
+        except OpenAPIError as e:
+            logger.exception(e)
             print(f'API spec is not valid')
             exit(1)
 
