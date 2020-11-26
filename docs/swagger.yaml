@@ -70,26 +70,38 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              obj: QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n
+              predicate: UN.CEFACT.Trade.CertificateOfOrigin.created
+              receiver: CN
+              sender: AU
+              subject: AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX
             schema:
               $ref: '#/components/schemas/MessagePayload'
       responses:
         '201':
           content:
             application/json:
+              example:
+                id: 1
               schema:
                 $ref: '#/components/schemas/PostedMessage'
           description: Returns message id
+      servers:
+      - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
   /messages/{id}:
     get:
       description: Get message by ID
       parameters:
-      - in: path
+      - example: 123
+        in: path
         name: id
         required: true
         schema:
           format: int64
           type: integer
-      - explode: false
+      - example: id,status,message
+        explode: false
         in: query
         name: fields
         schema:
@@ -101,9 +113,20 @@ paths:
         '200':
           content:
             application/json:
+              example:
+                id: 123
+                message:
+                  obj: QmQtYtUS7K1AdKjbuMsmPmPGDLaKL38M5HYwqxW9RKW49n
+                  predicate: UN.CEFACT.Trade.CertificateOfOrigin.created
+                  receiver: CN
+                  sender: AU
+                  subject: AU.abn0000000000.XXXX-XXXXX-XXXXX-XXXXXX
+                status: received
               schema:
                 $ref: '#/components/schemas/Message'
           description: Returns message object
+      servers:
+      - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
   /messages/subscriptions/by_jurisdiction:
     post:
       description: Subscribe to updates about new messages sent to jurisdiction (AU,
@@ -111,6 +134,10 @@ paths:
       requestBody:
         content:
           application/x-www-form-urlencoded:
+            example:
+              hub.callback: https://callback.url/1
+              hub.mode: subscribe
+              hub.topic: AU
             schema:
               $ref: '#/components/schemas/SubscriptionForm'
       responses:
@@ -118,12 +145,18 @@ paths:
           description: Client successfully subscribed/unsubscribed
         '400':
           description: Wrong params or intent verification failure
+      servers:
+      - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
   /messages/subscriptions/by_id:
     post:
       description: Subscribe to updates about a message (ie. status updates)
       requestBody:
         content:
           application/x-www-form-urlencoded:
+            example:
+              hub.callback: https://callback.url/1
+              hub.mode: subscribe
+              hub.topic: 123
             schema:
               $ref: '#/components/schemas/SubscriptionForm'
       responses:
@@ -131,3 +164,5 @@ paths:
           description: Client successfully subscribed/unsubscribed
         '400':
           description: Wrong params or intent verification failure
+      servers:
+      - url: https://sharedchannel-c1.services.devnet.trustbridge.io/
